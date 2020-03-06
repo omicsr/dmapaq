@@ -31,3 +31,20 @@ install.packages("dmapaq")
 # install.packages("remotes")
 remotes::install_github("mcanouil/dmapaq")
 ```
+
+## Overview 
+
+* `read_idats()` allows to efficiently import idats files mostly 
+    using [minfi](https://doi.org/doi:10.18129/B9.bioc.minfi) functions.
+* `qc_idats()` allows to compute quality-control of methylation array from Illumina 
+    using a [rmarkdown template](inst/rmarkdown/templates/qc_idats/skeleton/skeleton.Rmd).
+
+## Getting help
+
+If you encounter a clear bug, please file a minimal reproducible example on [github](https://github.com/omicsr/dmapaq/issues).  
+For questions and other discussion, please contact the package maintainer.
+
+---
+
+Please note that this project is released with a [Contributor Code of Conduct](.github/CODE_OF_CONDUCT.md).  
+By participating in this project you agree to abide by its terms.
