@@ -53,9 +53,9 @@ read_idats <- function(
   ))
 
   message(
-    "==============================", "\n",
-    "[CARoT] ", "Reading IDAT files ...", "\n",
-    "=============================="
+    "===============================", "\n",
+    "[dmapaq] ", "Reading IDAT files ...", "\n",
+    "==============================="
   )
   if (is.null(rgSet) | !inherits(rgSet, "RGChannelSet")) {
     sample_sheet <- read_sample_sheet(directory = directory, csv_file = csv_file)
@@ -69,9 +69,9 @@ read_idats <- function(
 
   message(
     "\n", "\n",
-    "====================================", "\n",
-    "[CARoT] ", "Preprocessing IDAT files ...", "\n",
-    "===================================="
+    "=====================================", "\n",
+    "[dmapaq] ", "Preprocessing IDAT files ...", "\n",
+    "====================================="
   )
   minfi::sampleNames(rgSet) <- rgSet[[1]]
 
@@ -80,9 +80,9 @@ read_idats <- function(
 
   message(
     "\n",
-    "================================", "\n",
-    "[CARoT] ", "Filtering IDAT files ...", "\n",
-    "================================"
+    "=================================", "\n",
+    "[dmapaq] ", "Filtering IDAT files ...", "\n",
+    "================================="
   )
 
   if (filter_callrate) {
@@ -235,9 +235,9 @@ read_idats <- function(
 
   message(
     "\n",
-    "================================", "\n",
-    "[CARoT] ", "Exporting IDAT files ...", "\n",
-    "================================"
+    "=================================", "\n",
+    "[dmapaq] ", "Exporting IDAT files ...", "\n",
+    "================================="
   )
 
   message(
@@ -291,9 +291,9 @@ read_sample_sheet <- function(
       recursive = recursive
     )
     if (length(list_files)>1) {
-      warnings("[CARoT] ", "More than one CSV file have been found!")
+      warnings("[dmapaq] ", "More than one CSV file have been found!")
       list_files <- list.files[1]
-      message("[CARoT] ", "File '", list.files, "' will be used.")
+      message("[dmapaq] ", "File '", list.files, "' will be used.")
     }
   }
 
@@ -307,7 +307,7 @@ read_sample_sheet <- function(
   cols_missing <- default_cols[!default_cols%in%col_names]
   if (length(cols_missing)!=0) {
     stop(
-      "[CARoT] ",
+      "[dmapaq] ",
       "Sample Sheet must contains the following missing columns:\n",
       "  - ", paste(cols_missing, collapse = "\n  - ")
     )
@@ -353,7 +353,7 @@ read_metharray <- function(basenames) {
       i_filesgz_exists <- file.exists(paste0(i_files, ".gz"))
       if (!all(i_filesgz_exists)) {
         stop(
-          # "[CARoT] ",
+          # "[dmapaq] ",
           "The following specified files do not exist:\n",
           "  - ", paste(i_files[!i_files_exists], collapse = "\n  - ")
         )
@@ -457,7 +457,7 @@ read_metharray_exp <- function(
 
     if (length(Grn_files) == 0 || length(Red_files) == 0) {
       stop(
-        # "[CARoT] ",
+        # "[dmapaq] ",
         "IDAT files must be provided."
       )
     }
@@ -469,7 +469,7 @@ read_metharray_exp <- function(
 
     if (length(commonFiles) == 0) {
       stop(
-        # "[CARoT] ",
+        # "[dmapaq] ",
         '"Grn" and "Red" idats files must be provided.'
       )
     }
@@ -477,7 +477,7 @@ read_metharray_exp <- function(
     commonFiles_Grn <- paste0(commonFiles, "_Grn.idat")
     if (!setequal(commonFiles_Grn, Grn_files)) {
       warning(
-        # "[CARoT] ",
+        # "[dmapaq] ",
         "The following files only exists for the green channel:\n",
         "  - ", paste(setdiff(Grn_files, commonFiles_Grn), collapse = "\n  - ")
       )
@@ -486,7 +486,7 @@ read_metharray_exp <- function(
     commonFiles_Red <- paste0(commonFiles, "_Red.idat")
     if (!setequal(commonFiles_Red, Red_files)) {
        warning(
-        # "[CARoT] ",
+        # "[dmapaq] ",
         "The following files only exists for the red channel:\n",
         "  - ", paste(setdiff(Red_files, commonFiles_Red), collapse = "\n  - ")
       )
@@ -496,7 +496,7 @@ read_metharray_exp <- function(
   } else {
     if (!"Basename" %in% names(sample_sheet)) {
       stop(
-        # "[CARoT] ",
+        # "[dmapaq] ",
         '"Basename" must be provided as a column of "sample_sheet".'
       )
     }

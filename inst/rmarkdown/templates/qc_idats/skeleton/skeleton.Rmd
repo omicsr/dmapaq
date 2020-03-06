@@ -63,22 +63,31 @@ options(stringsAsFactors = FALSE)
 output_directory <- params[["output_directory"]]
 dir.create(output_directory, recursive = TRUE, showWarnings = FALSE)
 
-
 ### Check packages
-stopifnot(all(sapply(
-  X = c(
-    "CARoT", "doParallel", "dplyr", "ENmix", "ggplot2", "grid", 
-    "Hmisc", "kableExtra", "knitr", "minfi", "parallel", "parallel", 
-    "rain", "readr", "scales", "sessioninfo", "stats", "tibble", 
-    "tidyr", "utils", "magrittr"
-  ),
-  FUN = require,
-  character.only = TRUE,
-  warn.conflicts = FALSE,
-  quietly = TRUE
-)))
-library("rlang", quietly = TRUE)
-`%>%` <- magrittr::`%>%`
+# library("AnnotationHub")
+# library("bookdown")
+# library("dmapaq")
+# library("doParallel")
+# library("ENmix")
+# library("ExperimentHub")
+# library("FlowSorted.Blood.EPIC")
+# library("FlowSorted.CordBloodCombined.450k")
+# library("fs")
+# library("ggplot2")
+# library("ggrepel")
+# library("kableExtra")
+# library("knitr")
+# library("minfi")
+# library("parallel")
+# library("rain")
+# library("readr")
+# library("RefFreeEWAS")
+# library("rmarkdown")
+# library("scales")
+# library("stats")
+# library("tibble")
+# library("tidyr")
+# library("utils")
 
 ### Set knitr rmarkdown chunk options
 knitr::opts_chunk$set(
@@ -216,7 +225,7 @@ if (do_check_gender) {
 
 ```{r read_idats}
 output <- utils::capture.output({
-  data_idats <- CARoT::read_idats(
+  data_idats <- dmapaq::read_idats(
     directory = params[["data_directory"]], 
     csv_file = file.path(tempdir(), "sample_sheet.csv"), 
     meth_value_type = "B",
@@ -239,7 +248,7 @@ output <- utils::capture.output({
     n_cores = params[["n_cores"]]
   )
 }, type = "message")
-output <- output[grep(pattern = "[CARoT] Filtering IDAT files ...", output, fixed = TRUE):length(output)]
+output <- output[grep(pattern = "[dmapaq] Filtering IDAT files ...", output, fixed = TRUE):length(output)]
 output <- output[!grepl(pattern = "^[=[]", x = output)]
 cat(output, sep = "\n\n")
 
@@ -459,7 +468,7 @@ cell_comp <- switch(
         ), "K"]
       )
     }
-    beta_matrix <- na.exclude(minfi::getBeta(data_mset))
+    beta_matrix <- stats::na.exclude(minfi::getBeta(data_mset))
     max_k <- min(ncol(beta_matrix), 25)
     k_estimated <- min(estimate_k_cluster(
       Rmat = beta_matrix, 
@@ -498,7 +507,7 @@ phenotypes <- dplyr::left_join(
 ```
 
 ```{r cell_composition_fig, eval = do_cell_composition}
-CARoT::ggheatmap(
+dmapaq::ggheatmap(
   data = phenotypes %>% 
     dplyr::select(Sample_ID, dplyr::starts_with("CellT_")) %>% 
     tibble::column_to_rownames(var = "Sample_ID") %>% 
@@ -694,7 +703,7 @@ phenotypes %>%
 ```{r normalisation, results = "hide"}
 norm_beta <- ENmix::rcp(mdat = data_mset)
 if (length(unique(minfi::pData(data_mset)[["Sentrix_ID"]])) > 1) { 
-  norm_beta <- ENmix::ComBat.mc(
+  norm_beta <- dmapaq::ComBat.mc(
     dat = norm_beta, 
     batch = factor(minfi::pData(data_mset)[["Sentrix_ID"]]), 
     nCores = params[["n_cores"]], 

@@ -55,7 +55,7 @@
 #'     Default is `c("Sample_Plate", "Sentrix_ID")`.
 #' @param title A `character`. The report's title. Default is `paste(array, "Array Quality-Control")`.
 #' @param author_name A `character`. The author's name to be printed in the report.
-#'     Default is `CARoT`.
+#'     Default is `Unknown`.
 #' @param author_affiliation A `character`. The affiliation to be printed in the report.
 #'     Default is `NULL`.
 #' @param author_email A `character`. The email to be printed in the report.
@@ -73,6 +73,34 @@
 #'     Default is `"UTF-8"`.
 #' @param ... Parameters to pass to `rmarkdown::render()`.
 #'
+#' @import ggplot2
+#' @import dplyr
+#' @import FlowSorted.CordBloodCombined.450k
+#' @import FlowSorted.Blood.EPIC
+#' @import IlluminaHumanMethylationEPICanno.ilm10b4.hg19
+#' @import IlluminaHumanMethylation450kanno.ilmn12.hg19
+#' @importFrom rmarkdown render
+#' @importFrom utils capture.output data
+#' @importFrom fs dir_tree
+#' @importFrom bookdown html_document2
+#' @importFrom knitr opts_chunk kable is_html_output
+#' @importFrom kableExtra kable_styling
+#' @importFrom scales percent comma viridis_pal
+#' @importFrom readr read_csv write_csv write_rds
+#' @importFrom tidyr unnest drop_na spread
+#' @importFrom ggrepel geom_label_repel
+#' @importFrom AnnotationHub query removeCache
+#' @importFrom ExperimentHub ExperimentHub
+#' @importFrom parallel makeCluster stopCluster
+#' @importFrom doParallel  registerDoParallel
+#' @importFrom RefFreeEWAS svdSafe RefFreeCellMixInitialize RefFreeCellMix
+#' @importFrom minfi getBeta getSex mapToGenome sampleNames pData
+#' @importFrom tibble rownames_to_column
+#' @importFrom stats density na.exclude
+#' @importFrom ENmix rcp
+#' @importFrom rain pca_report
+#' @importFrom sessioninfo session_info
+#'
 #' @return NULL
 #' @export
 qc_idats <- function(
@@ -80,7 +108,7 @@ qc_idats <- function(
   data_directory,
   array = "EPIC",
   annotation = "ilm10b4.hg19",
-  cohort_name = "CARoT",
+  cohort_name = "COHORT",
   output_file = paste(cohort_name, array, "QC.html", sep = "_"),
   output_directory = ".",
   filter_snps = TRUE,
@@ -103,7 +131,7 @@ qc_idats <- function(
   pca = TRUE,
   pca_vars = c("Sample_Plate", "Sentrix_ID"),
   title = paste(array, "Array Quality-Control"),
-  author_name = "CARoT",
+  author_name = "Unknown",
   author_affiliation = NULL,
   author_email = NULL,
   cache = FALSE,
@@ -114,7 +142,7 @@ qc_idats <- function(
   encoding = "UTF-8",
   ...
 ) {
-  message_prefix <- "[CARoT] "
+  message_prefix <- "[dmapaq] "
 
   message(message_prefix, "Quality-Control started ...")
 
@@ -125,7 +153,7 @@ qc_idats <- function(
   )
 
   rmarkdown::render(
-    input = paste0(tempdir(), "/qc_idats.Rmd"),
+    input = file.path(tempdir(), "qc_idats.Rmd"),
     output_file = output_file,
     output_dir = output_directory,
     encoding = encoding,
