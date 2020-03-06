@@ -3,7 +3,7 @@
 ## New features
 
 * `read_idats()` allows to efficiently import idats files mostly 
-    using [minfi](https://doi.org/doi:10.18129/B9.bioc.minfi) functions.
+    using [minfi](https://bioconductor.org/packages/minfi/) functions.
 * `qc_idats()` allows to compute quality-control of methylation array from Illumina 
     using a [rmarkdown template](inst/rmarkdown/templates/qc_idats/skeleton/skeleton.Rmd).
 * `ggheatmap()` allows to compute heatmap with dendrogram on x-axis and y-axis 
