@@ -4,8 +4,9 @@ output: github_document
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-```{r, include = FALSE}
+```{r, echo = FALSE}
 knitr::opts_chunk$set(
+  eval = FALSE,
   collapse = TRUE,
   comment = "#>",
   fig.path = "man/figures/README-",
@@ -13,44 +14,20 @@ knitr::opts_chunk$set(
 )
 ```
 
-# dmapaq
+# DNA Methylation Arrays Processing And Quality-Control <!--<img src="man/figures/dmapaq.png" align="right" width="120" />-->
 
 <!-- badges: start -->
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://www.tidyverse.org/lifecycle/#experimental)
-[![CRAN status](https://www.r-pkg.org/badges/version/dmapaq)](https://CRAN.R-project.org/package=dmapaq)
+[![GitHub tag](https://img.shields.io/github/tag/mcanouil/dmapaq.svg?label=latest tag&include_prereleases)](https://github.com/mcanouil/dmapaq)
 <!-- badges: end -->
-
-The goal of dmapaq is to ...
 
 ## Installation
 
-You can install the released version of dmapaq from [CRAN](https://CRAN.R-project.org) with:
-
-``` r
+```{r, eval = FALSE}
+# Install dmapaq from CRAN:
 install.packages("dmapaq")
+
+# Or the the development version from GitHub:
+# install.packages("remotes")
+remotes::install_github("mcanouil/dmapaq")
 ```
-
-## Example
-
-This is a basic example which shows you how to solve a common problem:
-
-```{r example}
-library(dmapaq)
-## basic example code
-```
-
-What is special about using `README.Rmd` instead of just `README.md`? You can include R chunks like so:
-
-```{r cars}
-summary(cars)
-```
-
-You'll still need to render `README.Rmd` regularly, to keep `README.md` up-to-date.
-
-You can also embed plots, for example:
-
-```{r pressure, echo = FALSE}
-plot(pressure)
-```
-
-In that case, don't forget to commit and push the resulting figure files, so they display on GitHub!
