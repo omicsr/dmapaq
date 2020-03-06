@@ -88,6 +88,7 @@ dir.create(output_directory, recursive = TRUE, showWarnings = FALSE)
 # library("tibble")
 # library("tidyr")
 # library("utils")
+`%>%` <- magrittr::`%>%`
 
 ### Set knitr rmarkdown chunk options
 knitr::opts_chunk$set(
