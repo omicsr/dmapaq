@@ -1,3 +1,8 @@
+# dmapaq (development version)
+
+* Fix missing prefix in [rmarkdown template](inst/rmarkdown/templates/qc_idats/skeleton/skeleton.Rmd).
+* Fix `sva::ComBat`export in `R/ComBat.mc`.
+
 # dmapaq 0.1.0
 
 ## New features
