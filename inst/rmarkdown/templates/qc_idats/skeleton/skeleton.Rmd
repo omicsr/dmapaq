@@ -613,7 +613,7 @@ ggplot2::ggplot(
   )
 ) +
   ggplot2::geom_polygon(
-    mapping = aes(x = qc_xmedian, y = qc_ymedian, fill = factor(qc_predicted_gender)),
+    mapping = ggplot2::aes(x = qc_xmedian, y = qc_ymedian, fill = factor(qc_predicted_gender)),
     alpha = 0.1,
     data = annot_gender,
     inherit.aes = FALSE

@@ -41,7 +41,7 @@ ComBat.mc <- function(dat, batch, nCores = 1, ...) {
     dat1 <- dat[which(parts1 == i), ]
     parts <- rep(1:nCores, ceiling(nrow(dat1) / nCores))[1:nrow(dat1)]
     parts <- sample(parts)
-    dat.o1 <- foreach::foreach(s = 1:nCores, .combine = rbind, .export = c("ComBat")) %dopar% {
+    dat.o1 <- foreach::foreach(s = 1:nCores, .combine = rbind, .export = c("sva::ComBat")) %dopar% {
       s <- s
       idx <- which(parts == s)
       sva::ComBat(dat = dat1[idx, ], batch = batch, ...)
