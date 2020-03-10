@@ -704,12 +704,18 @@ phenotypes %>%
 ```{r normalisation, results = "hide"}
 norm_beta <- ENmix::rcp(mdat = data_mset)
 if (length(unique(minfi::pData(data_mset)[["Sentrix_ID"]])) > 1) { 
-  norm_beta <- dmapaq::ComBat.mc(
-    dat = norm_beta, 
-    batch = factor(minfi::pData(data_mset)[["Sentrix_ID"]]), 
-    nCores = params[["n_cores"]], 
-    mod = NULL
-  )
+  norm_beta <- do.call("rbind", parallel::mclapply(
+    X = split(
+      x = as.data.frame(norm_beta[sample(1:nrow(norm_beta)), ]), 
+      f = (1:nrow(norm_beta)-1) %/% ( (nrow(norm_beta)-1) %/% params[["n_cores"]] )
+    ), 
+    .batch = factor(minfi::pData(data_mset)[["Sentrix_ID"]]), 
+    mc.cores = params[["n_cores"]],
+    FUN = function(x, .batch) {
+      sva::ComBat(dat = as.matrix(x), batch = .batch)
+    }
+  ))
+  norm_beta <- norm_beta[rownames(data_mset), ]
 }
 colnames(norm_beta) <- minfi::pData(data_mset)[["Sample_ID"]]
 if (min(norm_beta, na.rm = TRUE) <= 0) {

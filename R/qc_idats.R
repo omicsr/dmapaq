@@ -91,8 +91,7 @@
 #' @importFrom ggrepel geom_label_repel
 #' @importFrom AnnotationHub query removeCache
 #' @importFrom ExperimentHub ExperimentHub
-#' @importFrom parallel makeCluster stopCluster
-#' @importFrom doParallel  registerDoParallel
+#' @importFrom parallel mclapply
 #' @importFrom RefFreeEWAS svdSafe RefFreeCellMixInitialize RefFreeCellMix
 #' @importFrom minfi getBeta getSex mapToGenome sampleNames pData
 #' @importFrom tibble rownames_to_column
