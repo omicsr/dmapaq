@@ -1,4 +1,4 @@
-# dmapaq (development version)
+# dmapaq 0.1.2
 
 ## Minor improvements and fixes
 
