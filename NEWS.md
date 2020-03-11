@@ -1,5 +1,10 @@
 # dmapaq (development version)
 
+## Minor improvements and fixes
+
+* Now imports `ggplot2 v3.3.0`.
+* Update all packages listed in `Imports`.
+
 # dmapaq 0.1.1
 
 ## Minor improvements and fixes
