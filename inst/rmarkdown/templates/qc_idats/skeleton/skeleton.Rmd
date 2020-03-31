@@ -735,7 +735,7 @@ readr::write_rds(
   path = file.path(output_directory, paste0(params[["array"]], "_QC_mset.rds"))
 )
 readr::write_csv(
-  x = as.data.frame(norm_beta), 
+  x = tibble::rownames_to_column(as.data.frame(norm_beta), "cpg_id"), 
   path = gzfile(file.path(output_directory, paste0(params[["array"]], "_QC_betavalues.csv.gz")))
 )
 readr::write_csv(

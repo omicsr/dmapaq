@@ -1,3 +1,9 @@
+# dmapaq 0.1.3
+
+## Minor improvements and fixes
+
+* Fix missing probe id in beta matrix output from [rmarkdown template](inst/rmarkdown/templates/qc_idats/skeleton/skeleton.Rmd)
+
 # dmapaq 0.1.2
 
 ## Minor improvements and fixes
