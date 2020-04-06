@@ -1,8 +1,14 @@
+# dmapaq 0.1.4
+
+## Minor improvements and fixes
+
+* Replace `requireNamespace()` with `system.file()` in order to check packages availability [rmarkdown template](inst/rmarkdown/templates/qc_idats/skeleton/skeleton.Rmd).
+
 # dmapaq 0.1.3
 
 ## Minor improvements and fixes
 
-* Fix missing probe id in beta matrix output from [rmarkdown template](inst/rmarkdown/templates/qc_idats/skeleton/skeleton.Rmd)
+* Fix missing probe id in beta matrix output from [rmarkdown template](inst/rmarkdown/templates/qc_idats/skeleton/skeleton.Rmd).
 
 # dmapaq 0.1.2
 
