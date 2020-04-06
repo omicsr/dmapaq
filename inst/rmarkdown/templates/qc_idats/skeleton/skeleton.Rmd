@@ -134,7 +134,7 @@ pretty_kable <- function(x) {
 
 do_check_gender <- !is.null(params[["gender_colname"]])
 
-if (!requireNamespace("FlowSorted.Blood.EPIC")) {
+if (nchar(system.file(package = "FlowSorted.Blood.EPIC")==0)) {
   do_cell_composition <- FALSE
   message('Package "FlowSorted.Blood.EPIC" is not available.')
 } else {
@@ -319,27 +319,22 @@ ggplot2::ggplot(
 
 ```{r do_cell_composition}
 if (
-  tolower(params[["cell_tissue"]]) %in% "blood" & 
-    !requireNamespace(paste0("FlowSorted.Blood.", params[["array"]]))
+  grepl("blood", params[["cell_tissue"]], ignore.case = TRUE) & 
+    nchar(system.file(package = paste0("FlowSorted.Blood.", params[["array"]])) == 0)
 ) {
   do_cell_composition <- FALSE
   message(paste0('Package "', paste0("FlowSorted.Blood.", params[["array"]]), '" is not available.'))
 }
 
 if (
-  tolower(params[["cell_tissue"]]) %in% "blood" & 
-    !requireNamespace(paste0("FlowSorted.Blood.", params[["array"]]))
-) {
-  do_cell_composition <- FALSE
-  message(paste0('Package "', paste0("FlowSorted.Blood.", params[["array"]]), '" is not available.'))
-}
-
-if (
-  tolower(params[["cell_tissue"]]) %in% "cordblood" & 
-    !requireNamespace("FlowSorted.CordBloodCombined.450k")
+  grepl("cordblood", params[["cell_tissue"]], ignore.case = TRUE) & 
+    nchar(system.file(package = "FlowSorted.CordBloodCombined.450k") == 0)
 ) {
   message('Package "FlowSorted.CordBloodCombined.450k" is not available.')
-  if (requireNamespace("AnnotationHub") & requireNamespace("ExperimentHub")) {
+  if (
+    nchar(system.file(package = "AnnotationHub") == 0) &
+    nchar(system.file(package = "ExperimentHub") == 0)
+  ) {
     message('Experiment "FlowSorted.CordBloodCombined.450k" will be downloaded with "ExperimentHub".')
   } else {
     do_cell_composition <- FALSE
@@ -349,7 +344,7 @@ if (
 
 if (
   !tolower(params[["cell_tissue"]]) %in% c("blood", "cordblood") & 
-    !requireNamespace("RefFreeEWAS")
+    nchar(system.file(package = "RefFreeEWAS") == 0)
 ) {
   do_cell_composition <- FALSE
   message('Package "RefFreeEWAS" is not available.')
