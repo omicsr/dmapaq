@@ -1,3 +1,9 @@
+# dmapaq 0.1.5
+
+## Minor improvements and fixes
+
+* Fix misplaced parenthesis around calls to `system.file()` [rmarkdown template](inst/rmarkdown/templates/qc_idats/skeleton/skeleton.Rmd).
+
 # dmapaq 0.1.4
 
 ## Minor improvements and fixes
