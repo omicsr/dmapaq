@@ -1,3 +1,12 @@
+# dmapaq 0.1.6
+
+## Minor improvements and fixes
+
+* In [rmarkdown template](inst/rmarkdown/templates/qc_idats/skeleton/skeleton.Rmd),
+    + Fix regular expression for reference panel.
+    + Fix library availability check for cordbloodcombined reference panel.
+    + Remove parallel computation for ComBat batch correction.
+
 # dmapaq 0.1.5
 
 ## Minor improvements and fixes

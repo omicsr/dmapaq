@@ -319,7 +319,7 @@ ggplot2::ggplot(
 
 ```{r do_cell_composition}
 if (
-  grepl("blood", params[["cell_tissue"]], ignore.case = TRUE) & 
+  grepl("^blood$", params[["cell_tissue"]], ignore.case = TRUE) & 
     nchar(system.file(package = paste0("FlowSorted.Blood.", params[["array"]]))) == 0
 ) {
   do_cell_composition <- FALSE
@@ -327,7 +327,7 @@ if (
 }
 
 if (
-  grepl("cordblood", params[["cell_tissue"]], ignore.case = TRUE) & 
+  grepl("^cordblood$", params[["cell_tissue"]], ignore.case = TRUE) & 
     nchar(system.file(package = "FlowSorted.CordBloodCombined.450k")) == 0
 ) {
   message('Package "FlowSorted.CordBloodCombined.450k" is not available.')
@@ -344,8 +344,8 @@ if (
 
 if (
   (
-    !grepl("FlowSorted.blood", params[["cell_tissue"]], ignore.case = TRUE) &
-      !grepl("FlowSorted.cordblood", params[["cell_tissue"]], ignore.case = TRUE)
+    !grepl("^blood$", params[["cell_tissue"]], ignore.case = TRUE) &
+      !grepl("^cordblood$", params[["cell_tissue"]], ignore.case = TRUE)
   ) &
     nchar(system.file(package = "RefFreeEWAS")) == 0
 ) {
@@ -396,9 +396,11 @@ cell_comp <- switch(
       meanPlot = FALSE, 
       verbose = FALSE
     )$counts
+    colnames(out) <- paste0("CellT_", colnames(out))
+    out
   }, 
   "cordblood" = {
-    if (requireNamespace("FlowSorted.CordBloodCombined.450k")) {
+    if (nchar(system.file(package = "FlowSorted.CordBloodCombined.450k")) == 0) {
       idol_cpgs <- get(utils::data("IDOLOptimizedCpGsCordBlood", package = "FlowSorted.CordBloodCombined.450k"))
     } else {
       idol_cpgs <- NULL
@@ -702,18 +704,10 @@ phenotypes %>%
 ```{r normalisation, results = "hide"}
 norm_beta <- ENmix::rcp(mdat = data_mset)
 if (length(unique(minfi::pData(data_mset)[["Sentrix_ID"]])) > 1) { 
-  norm_beta <- do.call("rbind", parallel::mclapply(
-    X = split(
-      x = as.data.frame(norm_beta[sample(1:nrow(norm_beta)), ]), 
-      f = (1:nrow(norm_beta)-1) %/% ( (nrow(norm_beta)-1) %/% params[["n_cores"]] )
-    ), 
-    .batch = factor(minfi::pData(data_mset)[["Sentrix_ID"]]), 
-    mc.cores = params[["n_cores"]],
-    FUN = function(x, .batch) {
-      sva::ComBat(dat = as.matrix(x), batch = .batch)
-    }
-  ))
-  norm_beta <- norm_beta[rownames(data_mset), ]
+  norm_beta <- sva::ComBat(
+    dat = norm_beta, 
+    batch = factor(minfi::pData(data_mset)[["Sentrix_ID"]])
+  )[rownames(data_mset), ]
 }
 colnames(norm_beta) <- minfi::pData(data_mset)[["Sample_ID"]]
 if (min(norm_beta, na.rm = TRUE) <= 0) {
