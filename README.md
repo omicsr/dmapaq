@@ -31,8 +31,6 @@ remotes::install_github("mcanouil/dmapaq")
     template](inst/rmarkdown/templates/qc_idats/skeleton/skeleton.Rmd).
   - `ggheatmap()` allows to compute heatmap with dendrogram on x-axis
     and y-axis using [ggplot2](https://ggplot2.tidyverse.org/).
-  - `ComBat.mc()` is a multi-processor wrapper for ComBat method
-    (initially in [ENmix](https://bioconductor.org/packages/ENmix/)).
 
 ## Getting help
 

@@ -1,3 +1,9 @@
+# dmapaq 0.1.7
+
+## Minor improvements and fixes
+
++ In `README.Rmd`, remove parallel function for ComBat batch correction.
+
 # dmapaq 0.1.6
 
 ## Minor improvements and fixes
