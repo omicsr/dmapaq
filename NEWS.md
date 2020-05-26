@@ -1,50 +1,20 @@
-# dmapaq 0.1.7
+# dmapaq 0.2.0
 
 ## Minor improvements and fixes
 
-+ In `README.Rmd`, remove parallel function for ComBat batch correction.
-
-# dmapaq 0.1.6
-
-## Minor improvements and fixes
-
+* In `DESCRIPTION`, 
+  + Update all packages listed in `Imports`.
+  + Now imports `ggplot2 v3.3.0`.
+* In `README.Rmd`, remove parallel function for ComBat batch correction.
 * In [rmarkdown template](inst/rmarkdown/templates/qc_idats/skeleton/skeleton.Rmd),
     + Fix regular expression for reference panel.
     + Fix library availability check for cordbloodcombined reference panel.
+    + Fix misplaced parenthesis around calls to `system.file()`.
+    + Fix missing probe id in beta matrix output.
+    + Fix missing prefix.
     + Remove parallel computation for ComBat batch correction.
-
-# dmapaq 0.1.5
-
-## Minor improvements and fixes
-
-* Fix misplaced parenthesis around calls to `system.file()` [rmarkdown template](inst/rmarkdown/templates/qc_idats/skeleton/skeleton.Rmd).
-
-# dmapaq 0.1.4
-
-## Minor improvements and fixes
-
-* Replace `requireNamespace()` with `system.file()` in order to check packages availability [rmarkdown template](inst/rmarkdown/templates/qc_idats/skeleton/skeleton.Rmd).
-
-# dmapaq 0.1.3
-
-## Minor improvements and fixes
-
-* Fix missing probe id in beta matrix output from [rmarkdown template](inst/rmarkdown/templates/qc_idats/skeleton/skeleton.Rmd).
-
-# dmapaq 0.1.2
-
-## Minor improvements and fixes
-
-* Now imports `ggplot2 v3.3.0`.
-* Update all packages listed in `Imports`.
-
-# dmapaq 0.1.1
-
-## Minor improvements and fixes
-
-* Fix missing prefix in [rmarkdown template](inst/rmarkdown/templates/qc_idats/skeleton/skeleton.Rmd).
+    + Replace `requireNamespace()` with `system.file()` in order to check packages availability.
 * Remove `R/ComBat.mc`.
-* Use `parallel` for ComBat in [rmarkdown template](inst/rmarkdown/templates/qc_idats/skeleton/skeleton.Rmd).
 
 # dmapaq 0.1.0
 
