@@ -14,6 +14,7 @@
     + Fix missing prefix.
     + Remove parallel computation for ComBat batch correction.
     + Replace `requireNamespace()` with `system.file()` in order to check packages availability.
+    + No longer show empty gender check table.
 * Remove `R/ComBat.mc`.
 
 # dmapaq 0.1.0
