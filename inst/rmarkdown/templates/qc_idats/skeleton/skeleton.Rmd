@@ -696,11 +696,13 @@ phenotypes %>%
   pretty_kable()
 ```
 
-```{r discrepancy_samples_table, eval = do_check_gender, include = any(phenotypes[["qc_gender_discrepancy"]])}
-phenotypes %>% 
-  dplyr::filter(qc_gender_discrepancy) %>% 
-  dplyr::select(Sample_Name, Sample_ID, qc_observed_gender, qc_predicted_gender) %>% 
-  pretty_kable()
+```{r discrepancy_samples_table, eval = do_check_gender}
+if (any(phenotypes[["qc_gender_discrepancy"]])) {
+  phenotypes %>% 
+    dplyr::filter(qc_gender_discrepancy) %>% 
+    dplyr::select(Sample_Name, Sample_ID, qc_observed_gender, qc_predicted_gender) %>% 
+    pretty_kable()
+}
 ```
 
 ```{r normalisation, results = "hide"}
