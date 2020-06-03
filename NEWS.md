@@ -12,6 +12,7 @@
     + Fix misplaced parenthesis around calls to `system.file()`.
     + Fix missing probe id in beta matrix output.
     + Fix missing prefix.
+    + Fix cell composition section when no tissue is provided.
     + Remove parallel computation for ComBat batch correction.
     + Replace `requireNamespace()` with `system.file()` in order to check packages availability.
     + No longer show empty gender check table.
