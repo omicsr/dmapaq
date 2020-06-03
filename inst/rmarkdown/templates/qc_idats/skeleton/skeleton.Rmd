@@ -317,7 +317,7 @@ ggplot2::ggplot(
 
 ## Cell composition
 
-```{r do_cell_composition}
+```{r do_cell_composition, eval = do_cell_composition}
 if (
   grepl("^blood$", params[["cell_tissue"]], ignore.case = TRUE) & 
     nchar(system.file(package = paste0("FlowSorted.Blood.", params[["array"]]))) == 0
@@ -352,7 +352,9 @@ if (
   do_cell_composition <- FALSE
   message('Package "RefFreeEWAS" is not available.')
 }
+```
 
+```{r do_cell_composition_msg}
 if (!do_cell_composition) {
   cat("No cell tissue was provided or no available reference set (packages).\n")
 } else {
