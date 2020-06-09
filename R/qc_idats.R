@@ -84,7 +84,7 @@
 #' @importFrom fs dir_tree
 #' @importFrom bookdown html_document2
 #' @importFrom knitr opts_chunk kable is_html_output
-#' @importFrom kableExtra kable_styling
+#' @importFrom gt gt opt_row_striping
 #' @importFrom scales percent comma viridis_pal
 #' @importFrom readr read_csv write_csv write_rds
 #' @importFrom tidyr unnest drop_na spread
