@@ -15,6 +15,7 @@
     + Fix missing prefix.
     + Fix cell composition section when no tissue is provided.
     + Fix gender discrepancy table when observed gender is missing.
+    + Fix call rates table not displaying all thresholds.
     + Remove parallel computation for ComBat batch correction.
     + Replace `requireNamespace()` with `system.file()` in order to check packages availability.
     + No longer show empty gender check table.

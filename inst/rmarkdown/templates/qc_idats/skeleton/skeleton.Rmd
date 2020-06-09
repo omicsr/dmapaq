@@ -258,18 +258,23 @@ data_call_rate_samples <- phenotypes %>%
   
 ```{r call_rate_samples_tab}
 phenotypes %>% 
-  dplyr::mutate("Call Rate Threshold" = list(c(0.90, 0.95, 0.97, 0.98, 0.99, 1))) %>% 
-  tidyr::unnest("Call Rate Threshold") %>% 
-  dplyr::count(`Call Rate Threshold`, bad = call_rate < `Call Rate Threshold`, name = "Samples (N)") %>%
-  dplyr::filter(bad) %>% 
-  dplyr::arrange(dplyr::desc(`Call Rate Threshold`)) %>% 
-  dplyr::mutate(
-    "Samples (%)" = signif((`Samples (N)` / sum(`Samples (N)`)) * 100, digits = 3),
-    `Call Rate Threshold` = paste("<", `Call Rate Threshold`),
-    bad = NULL
-  ) %>% 
+  dplyr::mutate("< Call Rate Threshold" = list(c(0.90, 0.95, 0.97, 0.98, 0.99, 1))) %>% 
+  tidyr::unnest("< Call Rate Threshold") %>% 
+  dplyr::group_by(`< Call Rate Threshold`) %>% 
+  dplyr::summarise(
+    "Bad Samples (N)" = sum(call_rate < `< Call Rate Threshold`),
+    "Bad Samples (%)" = signif(sum(call_rate < `< Call Rate Threshold`) / dplyr::n() * 100, digits = 3)
+  ) %>%
+  dplyr::arrange(dplyr::desc(`< Call Rate Threshold`)) %>% 
   gt::gt(auto_align = "center") %>% 
-  gt::opt_row_striping()
+  gt::opt_row_striping() %>% 
+  gt::tab_style(
+    style = gt::cell_fill(color = "dodgerblue", alpha = 0.5), 
+    locations = gt::cells_body(
+      columns = gt::vars(`< Call Rate Threshold`, `Bad Samples (N)`, `Bad Samples (%)`), 
+      rows = `< Call Rate Threshold` == params[["callrate_samples"]]
+    )
+  )
 ```
 
 ```{r call_rate_samples_fig}
