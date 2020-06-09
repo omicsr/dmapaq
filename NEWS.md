@@ -3,8 +3,9 @@
 ## Minor improvements and fixes
 
 * In `DESCRIPTION`, 
-  + Update all packages listed in `Imports`.
-  + Now imports `ggplot2 v3.3.0`.
+    + Update all packages listed in `Imports`.
+    + Now imports `ggplot2 v3.3.0`.
+    + Use `gt` for tables.
 * In `README.Rmd`, remove parallel function for ComBat batch correction.
 * In [rmarkdown template](inst/rmarkdown/templates/qc_idats/skeleton/skeleton.Rmd),
     + Fix regular expression for reference panel.
@@ -13,6 +14,7 @@
     + Fix missing probe id in beta matrix output.
     + Fix missing prefix.
     + Fix cell composition section when no tissue is provided.
+    + Fix gender discrepancy table when observed gender is missing.
     + Remove parallel computation for ComBat batch correction.
     + Replace `requireNamespace()` with `system.file()` in order to check packages availability.
     + No longer show empty gender check table.

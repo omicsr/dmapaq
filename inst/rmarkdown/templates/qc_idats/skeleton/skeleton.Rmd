@@ -75,7 +75,7 @@ dir.create(output_directory, recursive = TRUE, showWarnings = FALSE)
 # library("fs")
 # library("ggplot2")
 # library("ggrepel")
-# library("kableExtra")
+# library("gt")
 # library("knitr")
 # library("minfi")
 # library("parallel")
@@ -115,22 +115,6 @@ if (params[["cache"]]) {
 ### Define theme
 ggplot2::theme_set(ggplot2::theme_light(base_size = params[["gg_fontsize"]]))
 
-
-### Additional packages and functions
-pretty_kable <- function(x) {
-  options(knitr.table.format = "html")
-  output <- knitr::kable(x)
-  if (knitr::is_html_output()) {
-    kableExtra::kable_styling(
-      kable_input = output,
-      bootstrap_options = c("striped", "hover", "condensed", "responsive", "bordered"),
-      full_width = FALSE,
-      position = "center"
-    )
-  } else {
-    output
-  }
-}
 
 do_check_gender <- !is.null(params[["gender_colname"]])
 
@@ -284,7 +268,8 @@ phenotypes %>%
     `Call Rate Threshold` = paste("<", `Call Rate Threshold`),
     bad = NULL
   ) %>% 
-  pretty_kable()
+  gt::gt(auto_align = "center") %>% 
+  gt::opt_row_striping()
 ```
 
 ```{r call_rate_samples_fig}
@@ -574,7 +559,7 @@ phenotypes <- phenotypes %>%
   dplyr::mutate(
     qc_predicted_gender = c("1" = 1, "2" = 2, "M" = 1, "F" = 2, "0" = 2)[qc_predicted_gender],
     qc_observed_gender = gender_clean,
-    qc_gender_discrepancy = qc_observed_gender != qc_predicted_gender
+    qc_gender_discrepancy = is.na(qc_observed_gender) | qc_observed_gender != qc_predicted_gender
   )
 ```
 
@@ -693,7 +678,8 @@ phenotypes %>%
   ) %>% 
   tidyr::spread(key = "qc_observed_gender", value = "n", fill = 0) %>% 
   dplyr::rename(` ` = qc_predicted_gender) %>% 
-  pretty_kable()
+  gt::gt(auto_align = "center") %>% 
+  gt::opt_row_striping()
 ```
 
 ```{r discrepancy_samples_table, eval = do_check_gender}
@@ -701,7 +687,8 @@ if (any(phenotypes[["qc_gender_discrepancy"]])) {
   phenotypes %>% 
     dplyr::filter(qc_gender_discrepancy) %>% 
     dplyr::select(Sample_Name, Sample_ID, qc_observed_gender, qc_predicted_gender) %>% 
-    pretty_kable()
+    gt::gt(auto_align = "center") %>% 
+    gt::opt_row_striping()
 }
 ```
 
