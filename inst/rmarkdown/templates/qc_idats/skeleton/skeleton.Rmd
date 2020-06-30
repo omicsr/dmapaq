@@ -20,19 +20,14 @@ params:
   filter_callrate: TRUE
   callrate_samples: 0.99
   callrate_probes: 1
-  gender_threshold: NULL 
-  gender_colname: NULL
+  sex_threshold: NULL 
+  sex_colname: NULL
   norm_background: "oob"
   norm_dye: "RELIC"
   norm_quantile: "quantile1" 
   cell_tissue: NULL
   pca: TRUE
   pca_vars: !r c("Sample_Plate", "Sentrix_ID")
-  cache: FALSE
-  show_code: FALSE
-  n_cores: 20
-  dpi: 120
-  gg_fontsize: 12
 title: '`r params[["title"]]`'
 author:
 - name: '`r params[["author_name"]]`'
@@ -43,15 +38,13 @@ output:
   bookdown::html_document2:
     theme: simplex
     toc: true
-    toc_depth: 2
+    toc_depth: 3
     toc_float: 
       collapsed: false
     fig_width: 6.3
     fig_height: 4.7
     number_sections: true
     self_contained: true
-    mathjax: default
-    df_print: kable
 editor_options: 
   chunk_output_type: console
 ---
@@ -60,64 +53,85 @@ editor_options:
 ```{r setup, include = FALSE}
 options(stringsAsFactors = FALSE)
 
+
+### Load packages ==================================================================================
+suppressPackageStartupMessages({
+  library("AnnotationHub")
+  library("bookdown")
+  library("dmapaq")
+  library("doParallel")
+  library("ENmix")
+  library("ExperimentHub")
+  library("FlowSorted.Blood.EPIC")
+  library("FlowSorted.CordBloodCombined.450k")
+  library("fs")
+  library("ggplot2")
+  library("ggrepel")
+  library("ggtext")
+  library("gt")
+  library("knitr")
+  library("minfi")
+  library("parallel")
+  library("rain")
+  library("readr")
+  library("RefFreeEWAS")
+  library("rmarkdown")
+  library("scales")
+  library("stats")
+  library("tibble")
+  library("tidyr")
+  library("utils")
+})
+
+
+### Functions ======================================================================================
+`%>%` <- gt::`%>%`
+
+
+### Environment ====================================================================================
 output_directory <- params[["output_directory"]]
-dir.create(output_directory, recursive = TRUE, showWarnings = FALSE)
+dir.create(output_directory, showWarnings = FALSE, recursive = TRUE, mode = "0777")
 
-### Check packages
-# library("AnnotationHub")
-# library("bookdown")
-# library("dmapaq")
-# library("doParallel")
-# library("ENmix")
-# library("ExperimentHub")
-# library("FlowSorted.Blood.EPIC")
-# library("FlowSorted.CordBloodCombined.450k")
-# library("fs")
-# library("ggplot2")
-# library("ggrepel")
-# library("gt")
-# library("knitr")
-# library("minfi")
-# library("parallel")
-# library("rain")
-# library("readr")
-# library("RefFreeEWAS")
-# library("rmarkdown")
-# library("scales")
-# library("stats")
-# library("tibble")
-# library("tidyr")
-# library("utils")
-`%>%` <- magrittr::`%>%`
 
-### Set knitr rmarkdown chunk options
+### Define theme ===================================================================================
+ggplot2::theme_set(
+  ggplot2::theme_light(base_size = 11) +
+    ggplot2::theme(
+      plot.title = ggtext::element_markdown(), 
+      plot.title.position = "plot", 
+      plot.subtitle = ggtext::element_markdown(face = "italic", size = ggplot2::rel(0.8)),
+      plot.caption = ggtext::element_markdown(face = "italic", size = ggplot2::rel(0.5)), 
+      plot.caption.position = "plot",
+      axis.text.x = ggtext::element_markdown(), 
+      axis.text.x.top = ggtext::element_markdown(), 
+      axis.text.y = ggtext::element_markdown(), 
+      legend.box.just = "left", 
+      legend.key.size = ggplot2::unit(0.5, "lines"), 
+      legend.text = ggtext::element_markdown(size = ggplot2::rel(0.5))
+    )
+)
+
+
+### knitr settings =================================================================================
 knitr::opts_chunk$set(
   results = "asis",
-  size = "small",
   include = TRUE,
-  echo = params[["show_code"]],
-  warning = params[["show_code"]],
-  message = params[["show_code"]],
-  dpi = params[["dpi"]],
+  echo = FALSE,
+  warning = FALSE,
+  message = FALSE,
+  dpi = 120,
   tidy = FALSE,
   crop = TRUE,
   autodep = TRUE,
-  fig.align = "center",
-  fig.pos = "!H"
+  fig.align = "center"
 )
 
-if (params[["cache"]]) {
-  dir.create(file.path(output_directory, "cache"), recursive = TRUE, showWarnings = FALSE, mode = "0777")
-  knitr::opts_chunk$set(cache = params[["cache"]], cache.path = paste0(output_directory, "/cache/"))
-}
+
+### Sex check ======================================================================================
+do_check_sex <- !is.null(params[["sex_colname"]])
 
 
-### Define theme
-ggplot2::theme_set(ggplot2::theme_light(base_size = params[["gg_fontsize"]]))
-
-
-do_check_gender <- !is.null(params[["gender_colname"]])
-
+### Cell heterogeneity =============================================================================
 if (nchar(system.file(package = "FlowSorted.Blood.EPIC")) == 0) {
   do_cell_composition <- FALSE
   message('Package "FlowSorted.Blood.EPIC" is not available.')
@@ -162,10 +176,10 @@ if (nchar(system.file(package = "FlowSorted.Blood.EPIC")) == 0) {
 * `filter_beads`: `r params[["filter_beads"]]`  
     => should probes with less than three beadcount in at least `r scales::percent(params[["bead_cutoff"]])` of the samples be removed?
 
-## Gender Check
+## Sex Check
 
-* The threshold value to discrimate gender: `r params[["gender_threshold"]]`  
-    => flag samples with gender discrepancy.
+* The threshold value to discrimate sex: `r params[["sex_threshold"]]`  
+    => flag samples with sex discrepancy.
 
 ## Ethnicity Check
 
@@ -191,8 +205,8 @@ if (nchar(system.file(package = "FlowSorted.Blood.EPIC")) == 0) {
 sample_sheet <- readr::read_csv(params[["csv_file"]], skip = 8) %>% 
   dplyr::mutate(
     Sample_ID = Sample_Name,
-    gender_clean = if (do_check_gender) {
-      c("1" = 1, "2" = 2, "M" = 1, "F" = 2, "0" = 2)[ get(params[["gender_colname"]]) ]
+    sex_clean = if (do_check_sex) {
+      c("1" = 1, "2" = 2, "M" = 1, "F" = 2, "0" = 2)[ get(params[["sex_colname"]]) ]
     } else {
       NULL
     }
@@ -201,8 +215,8 @@ sample_sheet <- readr::read_csv(params[["csv_file"]], skip = 8) %>%
 
 readr::write_csv(x = sample_sheet, path = file.path(tempdir(), "sample_sheet.csv"))
 
-if (do_check_gender) {
-  pca_vars <- intersect(colnames(sample_sheet), unique(c(params[["pca_vars"]], "gender_clean")))
+if (do_check_sex) {
+  pca_vars <- intersect(colnames(sample_sheet), unique(c(params[["pca_vars"]], "sex_clean")))
 } else {
   pca_vars <- intersect(colnames(sample_sheet), params[["pca_vars"]])
 }
@@ -283,8 +297,8 @@ ggplot2::ggplot(
   mapping = ggplot2::aes(x = x, y = call_rate, label = label)
 ) +
   ggplot2::geom_point(
-    colour = scales::viridis_pal()(1), 
-    shape = 21,
+    colour = scales::viridis_pal(begin = 0.5, end = 0.5)(1), 
+    shape = 1,
     na.rm = TRUE
   ) +
   ggplot2::geom_hline(
@@ -518,63 +532,63 @@ dmapaq::ggheatmap(
 )
 ```
 
-## Gender check
+## Sex check
 
-```{r do_check_gender}
-if (!do_check_gender) {
-  cat("No phenotypes for gender was provided.\n")
+```{r do_check_sex}
+if (!do_check_sex) {
+  cat("No phenotypes for sex was provided.\n")
 }
 ```
 
-```{r gender_check_computation, eval = do_check_gender}
-if (is.null(params[["gender_threshold"]])) {
+```{r sex_check_computation, eval = do_check_sex}
+if (is.null(params[["sex_threshold"]])) {
   sex_predicted <- suppressWarnings(suppressPackageStartupMessages({
     minfi::getSex(minfi::mapToGenome(data_rgset), cutoff = -2)
   }))
-  gender_density <- stats::density(sex_predicted$yMed - sex_predicted$xMed, n = 100000)
+  sex_density <- stats::density(sex_predicted$yMed - sex_predicted$xMed, n = 100000)
   
-  min_diff_xy <- which(diff(sign(diff(gender_density$y))) == 2)
-  min_diff_xy <- min_diff_xy[which.min(gender_density$y[min_diff_xy])]
-  gender_threshold <- round(x = gender_density$x[min_diff_xy], digits = 3)
+  min_diff_xy <- which(diff(sign(diff(sex_density$y))) == 2)
+  min_diff_xy <- min_diff_xy[which.min(sex_density$y[min_diff_xy])]
+  sex_threshold <- round(x = sex_density$x[min_diff_xy], digits = 3)
   
-  # gender_threshold <- gender_density[c("x", "y")] %>% 
+  # sex_threshold <- sex_density[c("x", "y")] %>% 
   #   as.data.frame() %>% 
   #   dplyr::mutate(local_minima = dplyr::lag(y) > y & dplyr::lead(y) > y) %>% 
   #   dplyr::filter(local_minima) %>% 
   #   .[["x"]]
 } else {
-  gender_threshold <- params[["gender_threshold"]]
+  sex_threshold <- params[["sex_threshold"]]
 }
 sex_predicted <- suppressWarnings(suppressPackageStartupMessages({
-  minfi::getSex(minfi::mapToGenome(data_rgset), cutoff = gender_threshold)
+  minfi::getSex(minfi::mapToGenome(data_rgset), cutoff = sex_threshold)
 })) %>% 
   as.data.frame() %>% 
   dplyr::mutate(Sample_ID = minfi::sampleNames(data_rgset)) %>% 
   dplyr::rename(
     qc_xmedian = xMed,
     qc_ymedian = yMed,
-    qc_predicted_gender = predictedSex
+    qc_predicted_sex = predictedSex
   )
 
-cat("\nThe gender threshold used for prediction was:", gender_threshold, "\n\n")
+cat("\nThe sex threshold used for prediction was:", sex_threshold, "\n\n")
 
 phenotypes <- phenotypes %>% 
   dplyr::mutate(Sample_ID = as.character(Sample_ID)) %>% 
   dplyr::left_join(y = sex_predicted, by = "Sample_ID") %>% 
   dplyr::mutate(
-    qc_predicted_gender = c("1" = 1, "2" = 2, "M" = 1, "F" = 2, "0" = 2)[qc_predicted_gender],
-    qc_observed_gender = gender_clean,
-    qc_gender_discrepancy = is.na(qc_observed_gender) | qc_observed_gender != qc_predicted_gender
+    qc_predicted_sex = c("1" = 1, "2" = 2, "M" = 1, "F" = 2, "0" = 2)[qc_predicted_sex],
+    qc_observed_sex = sex_clean,
+    qc_sex_discrepancy = is.na(qc_observed_sex) | qc_observed_sex != qc_predicted_sex
   )
 ```
 
-```{r gender_check_threshold, eval = do_check_gender}
+```{r sex_check_threshold, eval = do_check_sex}
 ggplot2::ggplot(
   data = dplyr::mutate(phenotypes, diff = qc_ymedian - qc_xmedian),
   mapping = ggplot2::aes(x = diff)
 ) +
   ggplot2::geom_density(position = "identity", na.rm = TRUE) +
-  ggplot2::geom_vline(xintercept = gender_threshold, linetype = 2, na.rm = TRUE) +
+  ggplot2::geom_vline(xintercept = sex_threshold, linetype = 2, na.rm = TRUE) +
   ggplot2::labs(
     x = expression(atop(
       paste("Y chromosome median total intensity ", (log[2])),
@@ -586,11 +600,11 @@ ggplot2::ggplot(
   ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.05)))
 ```
 
-```{r gender_check_fig, eval = do_check_gender}
-annot_gender <- data.frame(
+```{r sex_check_fig, eval = do_check_sex}
+annot_sex <- data.frame(
   qc_xmedian = c(c(0, 0, 20), c(0, 20, 20)),
-  qc_ymedian = c(c(0, 20, 20), c(0, 0, 20)) + gender_threshold,
-  qc_predicted_gender = rep(c(1, 2), each = 3)
+  qc_ymedian = c(c(0, 20, 20), c(0, 0, 20)) + sex_threshold,
+  qc_predicted_sex = rep(c(1, 2), each = 3)
 )
 
 axis_limits <- range(phenotypes[, c("qc_xmedian", "qc_ymedian")], na.rm = TRUE)
@@ -600,35 +614,35 @@ ggplot2::ggplot(
   mapping = ggplot2::aes(
     x = qc_xmedian, 
     y = qc_ymedian, 
-    shape = factor(qc_observed_gender), 
-    colour = factor(qc_observed_gender)
+    shape = factor(qc_observed_sex), 
+    colour = factor(qc_observed_sex)
   )
 ) +
   ggplot2::geom_polygon(
-    mapping = ggplot2::aes(x = qc_xmedian, y = qc_ymedian, fill = factor(qc_predicted_gender)),
+    mapping = ggplot2::aes(x = qc_xmedian, y = qc_ymedian, fill = factor(qc_predicted_sex)),
     alpha = 0.1,
-    data = annot_gender,
+    data = annot_sex,
     inherit.aes = FALSE
   ) +
   ggplot2::geom_abline(
-    data = data.frame(Threshold = paste("=", gender_threshold), Seuil = gender_threshold), 
+    data = data.frame(Threshold = paste("=", sex_threshold), Seuil = sex_threshold), 
     mapping = ggplot2::aes(intercept = Seuil, slope = 1, linetype = Threshold),
     na.rm = TRUE
   ) +
   ggplot2::geom_point(
-    data = ~ dplyr::filter(.x, !qc_gender_discrepancy), 
+    data = ~ dplyr::filter(.x, !qc_sex_discrepancy), 
     size = 2, 
     na.rm = TRUE
   ) +
   ggplot2::geom_point(
-    data = ~ dplyr::filter(.x, qc_gender_discrepancy),
+    data = ~ dplyr::filter(.x, qc_sex_discrepancy),
     colour = "firebrick2",
     size = 4,
     show.legend = FALSE,
     na.rm = TRUE
   ) +
   ggrepel::geom_label_repel(
-    data = ~ dplyr::filter(.x, qc_gender_discrepancy),
+    data = ~ dplyr::filter(.x, qc_sex_discrepancy),
     mapping = ggplot2::aes(x = qc_xmedian, y = qc_ymedian, label = Sample_ID),
     segment.colour = "black",
     colour = "black",
@@ -644,7 +658,7 @@ ggplot2::ggplot(
   ) +
   ggplot2::coord_cartesian(xlim = axis_limits, ylim = axis_limits) +
   ggplot2::scale_colour_viridis_d(
-    name = "Gender (Predicted)", 
+    name = "Sex (Predicted)", 
     breaks = c(1, 2), 
     labels = c("Male", "Female"),
     drop = FALSE,
@@ -652,7 +666,7 @@ ggplot2::ggplot(
     end = 0.8
   ) +
   ggplot2::scale_fill_viridis_d(
-    name = "Gender (Predicted)", 
+    name = "Sex (Predicted)", 
     breaks = c(1, 2), 
     labels = c("Male", "Female"),
     drop = FALSE,
@@ -660,7 +674,7 @@ ggplot2::ggplot(
     end = 0.8
   ) +
   ggplot2::scale_shape_manual(
-    name = "Gender (Observed)", 
+    name = "Sex (Observed)", 
     breaks = c(1, 2), 
     labels = c("Male", "Female"), 
     values = c(22, 21),
@@ -674,24 +688,24 @@ ggplot2::ggplot(
   )
 ```
 
-```{r discrepancy_table, eval = do_check_gender}
+```{r discrepancy_table, eval = do_check_sex}
 phenotypes %>%
-  dplyr::count(qc_predicted_gender, qc_observed_gender) %>% 
+  dplyr::count(qc_predicted_sex, qc_observed_sex) %>% 
   dplyr::mutate(
-    qc_observed_gender = paste("Observed:", qc_observed_gender),
-    qc_predicted_gender = paste("Predicted:", qc_predicted_gender)
+    qc_observed_sex = paste("Observed:", qc_observed_sex),
+    qc_predicted_sex = paste("Predicted:", qc_predicted_sex)
   ) %>% 
-  tidyr::spread(key = "qc_observed_gender", value = "n", fill = 0) %>% 
-  dplyr::rename(` ` = qc_predicted_gender) %>% 
+  tidyr::spread(key = "qc_observed_sex", value = "n", fill = 0) %>% 
+  dplyr::rename(` ` = qc_predicted_sex) %>% 
   gt::gt(auto_align = "center") %>% 
   gt::opt_row_striping()
 ```
 
-```{r discrepancy_samples_table, eval = do_check_gender}
-if (any(phenotypes[["qc_gender_discrepancy"]])) {
+```{r discrepancy_samples_table, eval = do_check_sex}
+if (any(phenotypes[["qc_sex_discrepancy"]])) {
   phenotypes %>% 
-    dplyr::filter(qc_gender_discrepancy) %>% 
-    dplyr::select(Sample_Name, Sample_ID, qc_observed_gender, qc_predicted_gender) %>% 
+    dplyr::filter(qc_sex_discrepancy) %>% 
+    dplyr::select(Sample_Name, Sample_ID, qc_observed_sex, qc_predicted_sex) %>% 
     gt::gt(auto_align = "center") %>% 
     gt::opt_row_striping()
 }
