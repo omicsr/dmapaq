@@ -60,15 +60,6 @@
 #'     Default is `NULL`.
 #' @param author_email A `character`. The email to be printed in the report.
 #'     Default is `NULL`.
-#' @param cache A `logical`. Should the R code be cached?
-#'     Default is `FALSE`.
-#' @param show_code A `logical`. Should the R code be printed in the report?
-#'     Default is `FALSE`.
-#' @param n_cores A `numeric`. The number of CPUs to use to estimate the ethnicity.
-#'     Default is `1`.
-#' @param dpi A `numeric`. The value for dpi when plotting the data.
-#'     Default is `120`.
-#' @param gg_fontsize A `numeric`. Value for the font size. Default is `12`.
 #' @param encoding A `character`. The encoding to be used for the html report.
 #'     Default is `"UTF-8"`.
 #' @param ... Parameters to pass to `rmarkdown::render()`.
@@ -133,11 +124,6 @@ qc_idats <- function(
   author_name = "Unknown",
   author_affiliation = NULL,
   author_email = NULL,
-  cache = FALSE,
-  show_code = FALSE,
-  n_cores = 1,
-  dpi = 120,
-  gg_fontsize = 12,
   encoding = "UTF-8",
   ...
 ) {
@@ -146,7 +132,7 @@ qc_idats <- function(
   message(message_prefix, "Quality-Control started ...")
 
   file.copy(
-    from = system.file("rmarkdown", "templates", "qc_idats", "skeleton.Rmd", package = "umr1283"),
+    from = system.file("rmarkdown", "templates", "qc_idats", "skeleton.Rmd", package = "dmapaq"),
     to = file.path(tempdir(), "qc_idats.Rmd"),
     overwrite = TRUE
   )
@@ -184,28 +170,12 @@ qc_idats <- function(
       author_name = author_name,
       author_affiliation = author_affiliation,
       author_email = author_email,
-      output_directory = output_directory,
-      cache = cache,
-      show_code = show_code,
-      n_cores = n_cores,
-      dpi = dpi,
-      gg_fontsize = gg_fontsize
+      output_directory = output_directory
     ),
     ...
   )
 
   message(message_prefix, "Quality-Control ended.")
-
-  message(
-    paste(
-      paste("  ",
-        utils::capture.output(
-          fs::dir_tree(path = normalizePath(output_directory), recurse = FALSE)
-        )
-      ),
-      collapse = "\n"
-    )
-  )
 
   invisible()
 }
