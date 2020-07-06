@@ -54,6 +54,26 @@ editor_options:
 options(stringsAsFactors = FALSE)
 
 
+### Environment ====================================================================================
+output_directory <- params[["output_directory"]]
+dir.create(output_directory, showWarnings = FALSE, recursive = TRUE, mode = "0777")
+
+
+### knitr settings =================================================================================
+knitr::opts_chunk$set(
+  results = "asis",
+  include = TRUE,
+  echo = FALSE,
+  warning = FALSE,
+  message = FALSE,
+  dpi = 120,
+  tidy = FALSE,
+  crop = TRUE,
+  autodep = TRUE,
+  fig.align = "center"
+)
+
+
 ### Load packages ==================================================================================
 suppressPackageStartupMessages({
   library("AnnotationHub")
@@ -84,15 +104,6 @@ suppressPackageStartupMessages({
 })
 
 
-### Functions ======================================================================================
-`%>%` <- gt::`%>%`
-
-
-### Environment ====================================================================================
-output_directory <- params[["output_directory"]]
-dir.create(output_directory, showWarnings = FALSE, recursive = TRUE, mode = "0777")
-
-
 ### Define theme ===================================================================================
 ggplot2::theme_set(
   ggplot2::theme_light(base_size = 11) +
@@ -112,19 +123,8 @@ ggplot2::theme_set(
 )
 
 
-### knitr settings =================================================================================
-knitr::opts_chunk$set(
-  results = "asis",
-  include = TRUE,
-  echo = FALSE,
-  warning = FALSE,
-  message = FALSE,
-  dpi = 120,
-  tidy = FALSE,
-  crop = TRUE,
-  autodep = TRUE,
-  fig.align = "center"
-)
+### Functions ======================================================================================
+`%>%` <- gt::`%>%`
 
 
 ### Sex check ======================================================================================
