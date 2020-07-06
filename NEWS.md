@@ -1,5 +1,8 @@
 # dmapaq (development version)
 
+* In [rmarkdown templates](inst/rmarkdown/templates),
+    + Reorder code in setup chunk.
+
 # dmapaq 0.2.0
 
 ## Minor improvements and fixes
