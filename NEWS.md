@@ -2,6 +2,15 @@
 
 * In [rmarkdown templates](inst/rmarkdown/templates),
     + Reorder code in setup chunk.
+    + Rewrite code using `data.table`.
+* In `ggheatmap.R`,
+    + Remove function `ggheatmap()`.
+* In `read_idats.R`,
+    + Optimise code.
+    + Use `parallel`.
+    + Use `data.table`.
+    + Add `echo` parameter.
+    + Return log messages.
 
 # dmapaq 0.2.0
 
