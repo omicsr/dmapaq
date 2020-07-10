@@ -53,6 +53,7 @@
 #'     Default is `TRUE`.
 #' @param pca_vars A `vector(character)`. Variables to be used with factorial planes.
 #'     Default is `c("Sample_Plate", "Sentrix_ID")`.
+#' @param max_labels A `numeric`. The maximum number of labels to show on plots. Default is `15`
 #' @param title A `character`. The report's title. Default is `paste(array, "Array Quality-Control")`.
 #' @param author_name A `character`. The author's name to be printed in the report.
 #'     Default is `Unknown`.
@@ -64,34 +65,8 @@
 #'     Default is `"UTF-8"`.
 #' @param ... Parameters to pass to `rmarkdown::render()`.
 #'
-#' @import ggplot2
-#' @import dplyr
-#' @import FlowSorted.CordBloodCombined.450k
-#' @import FlowSorted.Blood.EPIC
-#' @import IlluminaHumanMethylationEPICanno.ilm10b4.hg19
-#' @import IlluminaHumanMethylation450kanno.ilmn12.hg19
-#' @importFrom rmarkdown render
-#' @importFrom utils capture.output data
-#' @importFrom fs dir_tree
-#' @importFrom bookdown html_document2
-#' @importFrom knitr opts_chunk kable is_html_output
-#' @importFrom gt gt opt_row_striping tab_style cell_fill cells_body vars
-#' @importFrom scales percent comma viridis_pal
-#' @importFrom readr read_csv write_csv write_rds
-#' @importFrom tidyr unnest drop_na spread
-#' @importFrom ggrepel geom_label_repel
-#' @importFrom AnnotationHub query removeCache
-#' @importFrom ExperimentHub ExperimentHub
-#' @importFrom parallel mclapply
-#' @importFrom RefFreeEWAS svdSafe RefFreeCellMixInitialize RefFreeCellMix
-#' @importFrom minfi getBeta getSex mapToGenome sampleNames pData
-#' @importFrom tibble rownames_to_column
-#' @importFrom stats density na.exclude
-#' @importFrom ENmix rcp
-#' @importFrom rain pca_report
-#' @importFrom sessioninfo session_info
-#'
 #' @return NULL
+#'
 #' @export
 qc_idats <- function(
   csv_file,
@@ -120,6 +95,7 @@ qc_idats <- function(
   cell_tissue = NULL,
   pca = TRUE,
   pca_vars = c("Sample_Plate", "Sentrix_ID"),
+  max_labels = 15,
   title = paste(array, "Array Quality-Control"),
   author_name = "Unknown",
   author_affiliation = NULL,
@@ -131,11 +107,18 @@ qc_idats <- function(
 
   message(message_prefix, "Quality-Control started ...")
 
-  file.copy(
+  invisible(file.copy(
     from = system.file("rmarkdown", "templates", "qc_idats", "skeleton.Rmd", package = "dmapaq"),
     to = file.path(tempdir(), "qc_idats.Rmd"),
     overwrite = TRUE
-  )
+  ))
+
+  if (!all(sapply(
+    X = strsplit(gsub("\\([^()]+\\)|\n| ", "", utils::packageDescription("dmapaq", fields = "Suggests")), ",")[[1]],
+    FUN = function(x) nchar(system.file(package = x)) > 0
+  ))) {
+    stop(message_prefix, "Packages listed in 'Suggests' field are needed to run this function.")
+  }
 
   rmarkdown::render(
     input = file.path(tempdir(), "qc_idats.Rmd"),
@@ -166,6 +149,7 @@ qc_idats <- function(
       cell_tissue = cell_tissue,
       pca = pca,
       pca_vars = pca_vars,
+      max_labels = max_labels,
       title = title,
       author_name = author_name,
       author_affiliation = author_affiliation,

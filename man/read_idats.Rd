@@ -25,7 +25,8 @@ read_idats(
   array_name = c("EPIC", "450k"),
   annotation_version = c("ilm10b4.hg19", "ilmn12.hg19"),
   n_cores = 1,
-  rgSet = NULL
+  rgSet = NULL,
+  echo = FALSE
 )
 }
 \arguments{
@@ -94,6 +95,8 @@ Default is \code{"ilm10b4.hg19"} for the \code{"EPIC"} array}
 i.e., at most how many child processes will be run simultaneously.}
 
 \item{rgSet}{A \code{RGChannelSet} object.}
+
+\item{echo}{A \code{logical}. Should messages be displayed?}
 }
 \value{
 A \code{list}.

@@ -12,8 +12,11 @@
 #' @param n_cores An `integer`. The number of cores to use,
 #'     i.e., at most how many child processes will be run simultaneously.
 #' @param rgSet A `RGChannelSet` object.
+#' @param echo A `logical`. Should messages be displayed?
 #'
 #' @inheritParams qc_idats
+#'
+#' @import data.table
 #'
 #' @return A `list`.
 #' @export
@@ -38,28 +41,34 @@ read_idats <- function(
   array_name = c("EPIC", "450k"),
   annotation_version = c("ilm10b4.hg19", "ilmn12.hg19"),
   n_cores = 1,
-  rgSet = NULL
+  rgSet = NULL,
+  echo = FALSE
 ) {
+
+  if (echo) {
+    message(
+      "===============================\n",
+      "[dmapaq] Reading IDAT files ...\n",
+      "===============================",
+      appendLF = TRUE
+    )
+  }
+
   array_name <- array_name[1]
   annotation_version <- annotation_version[1]
 
   stopifnot(suppressPackageStartupMessages(
-    requireNamespace("minfi") &
+    nchar(system.file(package = "minfi")) > 0 &
       switch(
         EXPR = array_name,
-        "450k" = requireNamespace("IlluminaHumanMethylation450kmanifest"),
-        "EPIC" = requireNamespace("IlluminaHumanMethylationEPICmanifest")
+        "450k" = nchar(system.file(package = "IlluminaHumanMethylation450kmanifest")) > 0,
+        "EPIC" = nchar(system.file(package = "IlluminaHumanMethylationEPICmanifest")) > 0
       )
   ))
 
-  message(
-    "===============================", "\n",
-    "[dmapaq] ", "Reading IDAT files ...", "\n",
-    "==============================="
-  )
   if (is.null(rgSet) | !inherits(rgSet, "RGChannelSet")) {
-    sample_sheet <- read_sample_sheet(directory = directory, csv_file = csv_file)
-    rgSet <- read_metharray_exp(sample_sheet = sample_sheet)
+    sample_sheet <- read_sample_sheet(directory = directory, csv_file = csv_file, echo = echo)
+    rgSet <- read_metharray_exp(sample_sheet = sample_sheet, n_cores = n_cores)
   }
   rgSet@annotation <- switch(
     EXPR = array_name,
@@ -67,101 +76,46 @@ read_idats <- function(
     "EPIC" = c(array = "IlluminaHumanMethylationEPIC", annotation = annotation_version)
   )
 
-  message(
-    "\n", "\n",
-    "=====================================", "\n",
-    "[dmapaq] ", "Preprocessing IDAT files ...", "\n",
-    "====================================="
-  )
   minfi::sampleNames(rgSet) <- rgSet[[1]]
-
   data_detP <- minfi::detectionP(rgSet)
   data_detP[is.na(data_detP)] <- 1
-
-  message(
-    "\n",
-    "=================================", "\n",
-    "[dmapaq] ", "Filtering IDAT files ...", "\n",
-    "================================="
-  )
 
   if (filter_callrate) {
     good_detection <- data_detP < detection_pvalues
 
     call_rate_samples <- colSums(good_detection) / nrow(good_detection)
     bad_samples <- names(which(call_rate_samples < callrate_samples))
-    message(
-      "Filtering samples with call rate below ", scales::percent(callrate_samples), ":\n",
-      "  - ", scales::comma(length(bad_samples)), " samples were discarded"
-    )
 
     good_detection <- good_detection[, setdiff(colnames(good_detection), bad_samples)]
 
     call_rate_cpg <- rowSums(good_detection) / ncol(good_detection)
     bad_cpgs <- names(which(call_rate_cpg < callrate_probes))
-    message(
-      "Filtering probes with call rate below ", scales::percent(bead_cutoff), ":\n",
-      "  - ", scales::comma(length(bad_cpgs)), " probes were discarded"
-    )
   } else {
     bad_samples <- NULL
     bad_cpgs <- NULL
   }
 
-  trash <- utils::capture.output({
-    mset <- suppressMessages(ENmix::preprocessENmix(
-      rgSet = rgSet,
-      bgParaEst = norm_background,
-      dyeCorr = norm_dye,
-      QCinfo = NULL,
-      exQCsample = FALSE,
-      exQCcpg = FALSE,
-      exSample = bad_samples,
-      exCpG = bad_cpgs,
-      nCores = n_cores
-    ))
-    mset <- suppressMessages(ENmix::norm.quantile(mdat = mset, method = norm_quantile))
-  })
-
-  mset@metadata[["phenotypes"]] <- rgSet %>%
-    minfi::pData() %>%
-  	as.data.frame() %>%
-  	dplyr::mutate(
-  	  Sample_ID = as.character(get("Sample_ID")),
-  		mean_detection_pvalue = colMeans(data_detP)[get("Sample_ID")],
-  		call_rate = (colSums(data_detP < detection_pvalues) / nrow(data_detP))[get("Sample_ID")]
-  	) %>%
-    S4Vectors::DataFrame()
+  mset_raw <- mset <- minfi::preprocessRaw(rgSet)
 
   if (filter_beads) {
     bc <- get_beadcount(rgSet)
     bc2 <- bc[rowSums(is.na(bc)) < bead_cutoff * (ncol(bc)), ]
     mset_f2 <- mset[minfi::featureNames(mset) %in% rownames(bc2), ]
-    message(
-      "Filtering probes with a beadcount <3 in at least ", scales::percent(bead_cutoff), " of samples:\n",
-      "  - ", scales::comma(dim(mset)[1] - dim(mset_f2)[1]), " probes were discarded"
-    )
+    n_beads_discarded <- format(dim(mset)[1] - dim(mset_f2)[1], big.mark = ",", digits = 0)
     mset <- mset_f2
   }
 
   if (filter_non_cpg) {
     mset_f2 <- minfi::dropMethylationLoci(mset, dropCH = TRUE)
-    message(
-      "Filtering non-cg probes:\n",
-      "  - ", scales::comma(dim(mset)[1] - dim(mset_f2)[1]), " probes were discarded"
-    )
+    n_non_cpg_discarded <- format(dim(mset)[1] - dim(mset_f2)[1], big.mark = ",", digits = 0)
     mset <- mset_f2
   }
 
   if (filter_snps) {
     manifest_hg19 <- switch(
       EXPR = array_name,
-      "450k" = {
-        get(utils::data("hm450.manifest.hg19", package = "ChAMPdata"))
-      },
-      "EPIC" = {
-        get(utils::data("EPIC.manifest.hg19", package = "ChAMPdata"))
-      }
+      "450k" = get(utils::data("hm450.manifest.hg19", package = "ChAMPdata")),
+      "EPIC" = get(utils::data("EPIC.manifest.hg19", package = "ChAMPdata"))
     )
 
     ref_population <- c(
@@ -180,20 +134,14 @@ read_idats <- function(
     }
     maskname <- rownames(manifest_hg19)[which_population]
     mset_f2 <- mset[!minfi::featureNames(mset) %in% maskname, ]
-    message(
-      "Filtering probes with SNPs (Zhou et al., 2016; doi:10.1093/nar/gkw967):\n",
-      "  - ", scales::comma(dim(mset)[1] - dim(mset_f2)[1]), " probes were discarded"
-    )
+    n_snps_discarded <- format(dim(mset)[1] - dim(mset_f2)[1], big.mark = ",", digits = 0)
     mset <- mset_f2
   }
 
   if (filter_multihit) {
     multi_hit <- get(utils::data("multi.hit", package = "ChAMPdata"))
     mset_f2 <- mset[!minfi::featureNames(mset) %in% multi_hit$TargetID, ]
-    message(
-      "Filtering probes that align to multiple locations (Nordlund et al., 2013; doi:10.1186/gb-2013-14-9-r105):\n",
-      "  - ", scales::comma(dim(mset)[1] - dim(mset_f2)[1]), " probes were discarded"
-    )
+    n_multihit_discarded <- format(dim(mset)[1] - dim(mset_f2)[1], big.mark = ",", digits = 0)
     mset <- mset_f2
   }
 
@@ -206,60 +154,104 @@ read_idats <- function(
     probe_features <- get("probe.features")
     autosomes <- probe_features[!probe_features$CHR %in% c("X", "Y"), ]
     mset_f2 <- mset[minfi::featureNames(mset) %in% rownames(autosomes), ]
-    message(
-      "Filtering probes on the X or Y chromosome:\n",
-      "  - ", scales::comma(dim(mset)[1] - dim(mset_f2)[1]), " probes were discarded"
-    )
+    n_xy_discarded <- format(dim(mset)[1] - dim(mset_f2)[1], big.mark = ",", digits = 0)
     mset <- mset_f2
   }
 
+  mset <- ENmix::preprocessENmix(
+    rgSet = rgSet,
+    bgParaEst = norm_background,
+    dyeCorr = norm_dye,
+    QCinfo = NULL,
+    exQCsample = FALSE,
+    exQCcpg = FALSE,
+    exSample = bad_samples,
+    exCpG = unique(c(bad_cpgs, setdiff(minfi::featureNames(mset_raw), minfi::featureNames(mset)))),
+    nCores = n_cores
+  )
+  mset <- ENmix::norm.quantile(mdat = mset, method = norm_quantile)
 
-  if (meth_value_type == "B") {
-    methylation_matrix <- minfi::getBeta(mset, "Illumina")
-  } else {
-    methylation_matrix <- minfi::getM(mset)
-  }
+  methylation_matrix <-switch(meth_value_type,
+    "B" = minfi::getBeta(mset, "Illumina"),
+    "M" = minfi::getM(mset),
+    stop('Methylation value type not defined. Only "B" or "M" are available.')
+  )
 
   if (min(methylation_matrix, na.rm = TRUE) <= 0) {
-    methylation_matrix[methylation_matrix <= 0] <- min(methylation_matrix[methylation_matrix > 0])
+    methylation_matrix[methylation_matrix <= 0] <- min(methylation_matrix[methylation_matrix > 0], na.rm = TRUE)
   }
-  message(
-    "Zeros have been replaced with smallest value over zero."
-  )
   if (max(methylation_matrix, na.rm = TRUE) >= 1) {
-    methylation_matrix[methylation_matrix >= 1] <- max(methylation_matrix[methylation_matrix < 1])
+    methylation_matrix[methylation_matrix >= 1] <- max(methylation_matrix[methylation_matrix < 1], na.rm = TRUE)
   }
-  message(
-    "Ones have been replaced with largest value below one."
-  )
-
-  message(
-    "\n",
-    "=================================", "\n",
-    "[dmapaq] ", "Exporting IDAT files ...", "\n",
-    "================================="
-  )
-
-  message(
-    "Data contains:\n",
-    "  - ", scales::comma(dim(methylation_matrix)[1]), " probes\n",
-    "  - ", scales::comma(dim(methylation_matrix)[2]), " samples\n",
-    "  - ", scales::comma(sum(is.na(methylation_matrix))), " missing values"
-  )
 
   colnames(methylation_matrix) <- minfi::pData(mset)[["Sample_ID"]]
+  mset@metadata[[meth_value_type]] <- methylation_matrix
+  tmp_phenotypes <- data.table::as.data.table(minfi::pData(rgSet))
+  tmp_phenotypes[, "Sample_ID" := as.character(.SD), .SDcols = "Sample_ID"]
+  tmp_phenotypes[, "mean_detection_pvalue" := colMeans(data_detP)[.SD], .SDcols = "Sample_ID"]
+  tmp_phenotypes[, "call_rate" := (colSums(data_detP < detection_pvalues) / nrow(data_detP))[.SD], .SDcols = "Sample_ID"]
+  mset@metadata[["phenotypes"]] <- tmp_phenotypes
 
-  switch(
-    EXPR = meth_value_type,
-    "B" = {
-      mset@metadata[["beta_values"]] <- methylation_matrix
-    },
-    "M" = {
-      mset@metadata[["M_values"]] <- methylation_matrix
-    }
+  log_msg <- character(0)
+  if (filter_callrate) {
+    log_msg <- c(log_msg, paste0(
+      "Filtering samples with call rate below ",
+      paste(format(callrate_samples * 100, digits = 1, nsmall = 1), "%"), ":\n",
+      "  - ", format(length(bad_samples), big.mark = ",", digits = 0), " samples were discarded."
+    ))
+    log_msg <- c(log_msg, paste0(
+      "Filtering probes with call rate below ",
+      paste(format(callrate_probes * 100, digits = 1, nsmall = 1), "%"), ":\n",
+      "  - ", format(length(bad_cpgs), big.mark = ",", digits = 0), " probes were discarded."
+    ))
+  }
+  if (filter_beads) {
+    log_msg <- c(log_msg, paste0(
+      "Filtering probes with a beadcount lower than three in at least ",
+      paste(format(bead_cutoff * 100, digits = 1, nsmall = 1), "%"), " of samples:\n",
+      "  - ", n_beads_discarded, " probes were discarded."
+    ))
+  }
+  if (filter_non_cpg) {
+    log_msg <- c(log_msg, paste0(
+      "Filtering non-cg probes:\n",
+      "  - ", n_non_cpg_discarded, " probes were discarded."
+    ))
+  }
+  if (filter_snps) {
+    log_msg <- c(log_msg, paste0(
+      "Filtering probes with SNPs (Zhou et al., 2016; doi:10.1093/nar/gkw967):\n",
+      "  - ", n_snps_discarded, " probes were discarded."
+    ))
+  }
+  if (filter_multihit) {
+    log_msg <- c(log_msg, paste0(
+      "Filtering probes that align to multiple locations ",
+      "(Nordlund et al., 2013; doi:10.1186/gb-2013-14-9-r105):\n",
+      "  - ", n_multihit_discarded, " probes were discarded."
+    ))
+  }
+  if (filter_xy) {
+    log_msg <- c(log_msg, paste0(
+      "Filtering probes on the X or Y chromosome:\n",
+      "  - ", n_xy_discarded, " probes were discarded."
+    ))
+  }
+  log_msg <- c(log_msg,
+    "Zeros have been replaced with smallest value over zero.",
+    "Ones have been replaced with largest value below one.",
+    paste0(
+      "Data contains:\n",
+      "  - ", format(dim(methylation_matrix)[1], big.mark = ",", digits = 0), " probes.\n",
+      "  - ", format(dim(methylation_matrix)[2], big.mark = ",", digits = 0), " samples.\n",
+      "  - ", format(sum(is.na(methylation_matrix)), big.mark = ",", digits = 0), " missing values."
+    )
   )
+  if (echo) {
+    message(paste(log_msg, collapse = "\n"), appendLF = TRUE)
+  }
 
-  list(mset = mset, rgset = rgSet)
+  list(mset = mset, rgset = rgSet, log = log_msg)
 }
 
 
@@ -274,11 +266,12 @@ read_idats <- function(
 #'
 #' @keywords internal
 read_sample_sheet <- function(
-  directory,
+  directory = ".",
   csv_file = "csv$",
   ignore.case = TRUE,
   recursive = TRUE,
-  full.names = TRUE
+  full.names = TRUE,
+  echo = FALSE
 ) {
   if (file.exists(suppressWarnings(normalizePath(csv_file)))) {
     list_files <- normalizePath(csv_file)
@@ -291,60 +284,55 @@ read_sample_sheet <- function(
       recursive = recursive
     )
     if (length(list_files)>1) {
-      warnings("[dmapaq] ", "More than one CSV file have been found!")
+      warning("[dmapaq] More than one CSV file have been found!")
       list_files <- list.files[1]
-      message("[dmapaq] ", "File '", list.files, "' will be used.")
+      if (echo) message("[dmapaq] File '", list.files, "' will be used.", appendLF = TRUE)
     }
   }
 
   data_header <- grep("^\\[DATA\\]", readLines(list_files), ignore.case = TRUE)
-  if (length(data_header) == 0) {
-    data_header <- 0
-  }
-  col_names <- colnames(utils::read.csv(file = list_files, stringsAsFactor = FALSE, skip = data_header, nrows = 1))
+  if (length(data_header) == 0) data_header <- 0
+  col_names <- colnames(data.table::fread(file = list_files, skip = data_header, nrows = 1))
   default_cols <- c("Sample_ID", "Sentrix_ID", "Sentrix_Position")
 
-  cols_missing <- default_cols[!default_cols%in%col_names]
-  if (length(cols_missing)!=0) {
+  cols_missing <- default_cols[!default_cols %in% col_names]
+  if (length(cols_missing) != 0) {
     stop(
-      "[dmapaq] ",
-      "Sample Sheet must contains the following missing columns:\n",
+      "[dmapaq] Sample Sheet must contains the following missing columns:\n",
       "  - ", paste(cols_missing, collapse = "\n  - ")
     )
   }
 
-  sample_sheet <- utils::read.csv(list_files, stringsAsFactor = FALSE, skip = data_header)
+  sample_sheet <- data.table::fread(file = list_files, skip = data_header)
+  data.table::setnames(
+    x = sample_sheet,
+    old = c("Sample_ID", "Slide", "Array", "Sample_Plate", "Sample_Well"),
+    new = c("Sample_ID", "Sentrix_ID", "Sentrix_Position", "Sample_Plate", "Sample_Well"),
+    skip_absent = TRUE
+  )
 
-  new_cols <- c("Sample_ID", "Slide", "Array", "Sample_Plate", "Sample_Well")
-  names(new_cols) <- c("Sample_ID", "Sentrix_ID", "Sentrix_Position", "Sample_Plate", "Sample_Well")
-  for (idef in names(new_cols)) {
-    sample_sheet[[new_cols[idef]]] <- as.character(sample_sheet[[idef]])
-  }
-
-  basenames <- sapply(
-    X = paste0(sample_sheet[["Slide"]], "_", sample_sheet[["Array"]], "_Grn.idat"),
+  basenames <- sub("_Grn\\.idat.*", "", sapply(
+    X = paste0(sample_sheet[["Sentrix_ID"]], "_", sample_sheet[["Sentrix_Position"]], "_Grn.idat"),
     FUN = grep,
     x = list.files(path = directory, recursive = recursive, full.names = TRUE),
     value = TRUE,
     USE.NAMES = FALSE
-  )
-  sample_sheet[["Basename"]] <- sub("_Grn\\.idat.*", "", basenames, ignore.case = TRUE)
+  ), ignore.case = TRUE)
+  sample_sheet[, "Basename" := basenames]
 
   sample_sheet
 }
 
 #' read_metharray
 #'
-#' @param basenames The `basenames` or `filenames` of the IDAT files.
+#' @inheritParams read_idats
+#' @param files The `basenames` or `filenames` of the IDAT files.
 #'     `basenames` are the filename without the ending `_Grn.idat` or `_Red.idat`.
 #'     `filenames` are filenames including `_Grn.idat` or `_Red.idat`.
 #'
 #' @keywords internal
-read_metharray <- function(basenames) {
-  basenames <- unique(sub("_[GR][re][nd]\\.idat.*", "", basenames))
-
-  p <- dplyr::progress_estimated(length(basenames)*2+6)
-
+read_metharray <- function(files, n_cores) {
+  basenames <- unique(sub("_Grn\\.idat.*|_Red\\.idat.*", "", files))
   for (ichannel in c("Grn", "Red")) {
     i_files <- paste0(basenames, "_", ichannel, ".idat")
     names(i_files) <- basename(basenames)
@@ -353,22 +341,16 @@ read_metharray <- function(basenames) {
       i_filesgz_exists <- file.exists(paste0(i_files, ".gz"))
       if (!all(i_filesgz_exists)) {
         stop(
-          # "[dmapaq] ",
-          "The following specified files do not exist:\n",
+           "The following specified files do not exist:\n",
           "  - ", paste(i_files[!i_files_exists], collapse = "\n  - ")
         )
       }
       i_files <- paste0(i_files, ".gz")
     }
-    i_idats <- lapply(
-      X = i_files,
-      FUN = function(x) {
-        p$pause(0.1)$tick()$print()
-        illuminaio::readIDAT(x)
-      }
-    )
+    suppressWarnings({
+      i_idats <- parallel::mclapply(X = i_files, mc.preschedule = FALSE, mc.cores = n_cores, FUN = illuminaio::readIDAT)
+    })
     assign(x = gsub("(^.).*", "\\1_idats", ichannel), value = i_idats)
-    p$pause(0.1)$tick()$print()
   }
 
   common_addresses <- as.character(Reduce("intersect", lapply(
@@ -376,51 +358,35 @@ read_metharray <- function(basenames) {
     FUN = function(x) rownames(x$Quants)
   )))
 
-  p$pause(0.1)$tick()$print()
-
-  GreenMean <- do.call("cbind", lapply(
-    X = get("G_idats"),
-    y = common_addresses,
-    FUN = function(x, y) x$Quants[y, "Mean"]
-  ))
-
-  p$pause(0.1)$tick()$print()
-
-  RedMean <- do.call("cbind", lapply(
-    X = get("R_idats"),
-    y = common_addresses,
-    FUN = function(x, y) x$Quants[y, "Mean"]
-  ))
-
-  p$pause(0.1)$tick()$print()
-
-
-  GreenSD <- do.call("cbind", lapply(
-    X = get("G_idats"),
-    y = common_addresses,
-    FUN = function(x, y) x$Quants[common_addresses, "SD"]
-  ))
-  RedSD <- do.call("cbind", lapply(
-    X = get("R_idats"),
-    y = common_addresses,
-    FUN = function(x, y) x$Quants[common_addresses, "SD"]
-  ))
-  NBeads <- do.call("cbind", lapply(
-    X = get("G_idats"),
-    y = common_addresses,
-    FUN = function(x, y) x$Quants[common_addresses, "NBeads"]
-  ))
   out <- minfi::RGChannelSetExtended(
-    Red = RedMean,
-    Green = GreenMean,
-    RedSD = RedSD,
-    GreenSD = GreenSD,
-    NBeads = NBeads
+    Red = do.call("cbind", lapply(
+      X = get("R_idats"),
+      y = common_addresses,
+      FUN = function(x, y) x$Quants[y, "Mean"]
+    )),
+    Green = do.call("cbind", lapply(
+      X = get("G_idats"),
+      y = common_addresses,
+      FUN = function(x, y) x$Quants[y, "Mean"]
+    )),
+    RedSD = do.call("cbind", lapply(
+      X = get("R_idats"),
+      y = common_addresses,
+      FUN = function(x, y) x$Quants[common_addresses, "SD"]
+    )),
+    GreenSD = do.call("cbind", lapply(
+      X = get("G_idats"),
+      y = common_addresses,
+      FUN = function(x, y) x$Quants[common_addresses, "SD"]
+    )),
+    NBeads = do.call("cbind", lapply(
+      X = get("G_idats"),
+      y = common_addresses,
+      FUN = function(x, y) x$Quants[common_addresses, "NBeads"]
+    ))
   )
 
   rownames(out) <- common_addresses
-
-  p$pause(0.1)$tick()$print()
 
   out
 }
@@ -437,82 +403,70 @@ read_metharray_exp <- function(
   sample_sheet = NULL,
   ignore.case = TRUE,
   recursive = TRUE,
-  full.names = TRUE
+  full.names = TRUE,
+  n_cores = 1
 ) {
   if (is.null(sample_sheet)) {
-    Grn_files <- list.files(
+    if (is.null(directory)) directory <- "."
+    green_files <- list.files(
       path = directory,
-      pattern = "_Grn.idat$",
+      pattern = "_Grn.idat.*",
       recursive = recursive,
       ignore.case = ignore.case,
       full.names = full.names
     )
-    Red_files <- list.files(
+    red_files <- list.files(
       path = directory,
-      pattern = "_Red.idat$",
+      pattern = "_Red.idat.*",
       recursive = recursive,
       ignore.case = ignore.case,
       full.names = full.names
     )
 
-    if (length(Grn_files) == 0 || length(Red_files) == 0) {
-      stop(
-        # "[dmapaq] ",
-        "IDAT files must be provided."
-      )
+    if (length(green_files) == 0 || length(red_files) == 0) {
+      stop("IDAT files must be provided.")
     }
 
-    commonFiles <- intersect(
-      sub("_Grn.idat$", "", Grn_files),
-      sub("_Red.idat$", "", Red_files)
-    )
+    common_files <- intersect(sub("_Grn.idat.*", "", green_files), sub("_Red.idat.*", "", red_files))
 
-    if (length(commonFiles) == 0) {
-      stop(
-        # "[dmapaq] ",
-        '"Grn" and "Red" idats files must be provided.'
-      )
+    if (length(common_files) == 0) {
+      stop('"Grn" and "Red" idats files must be provided.')
     }
 
-    commonFiles_Grn <- paste0(commonFiles, "_Grn.idat")
-    if (!setequal(commonFiles_Grn, Grn_files)) {
+    common_files_green <- paste0(common_files, "_Grn.idat")
+    if (!setequal(common_files_green, green_files)) {
       warning(
-        # "[dmapaq] ",
         "The following files only exists for the green channel:\n",
-        "  - ", paste(setdiff(Grn_files, commonFiles_Grn), collapse = "\n  - ")
+        "  - ", paste(setdiff(green_files, common_files_green), collapse = "\n  - ")
       )
     }
 
-    commonFiles_Red <- paste0(commonFiles, "_Red.idat")
-    if (!setequal(commonFiles_Red, Red_files)) {
+    common_files_red <- paste0(common_files, "_Red.idat")
+    if (!setequal(common_files_red, red_files)) {
        warning(
-        # "[dmapaq] ",
         "The following files only exists for the red channel:\n",
-        "  - ", paste(setdiff(Red_files, commonFiles_Red), collapse = "\n  - ")
+        "  - ", paste(setdiff(red_files, common_files_red), collapse = "\n  - ")
       )
     }
 
-    rgSet <- read_metharray(basenames = commonFiles)
+    rgSet <- read_metharray(common_files, n_cores)
   } else {
-    if (!"Basename" %in% names(sample_sheet)) {
-      stop(
-        # "[dmapaq] ",
-        '"Basename" must be provided as a column of "sample_sheet".'
-      )
+    if (all(!grepl("Basename", names(sample_sheet)))) {
+      stop('"Basename" must be provided as a column of "sample_sheet".')
     }
 
-    if (!is.null(directory)) {
-      files <- file.path(directory, basename(sample_sheet$Basename))
+    if (is.null(directory)) {
+      files <- sample_sheet[["Basename"]]
     } else {
-      files <- sample_sheet$Basename
+      files <- file.path(directory, basename(sample_sheet[["Basename"]]))
     }
 
-    rgSet <- read_metharray(basenames = files)
+    rgSet <- read_metharray(files, n_cores)
 
-    pD <- sample_sheet
-    pD$filenames <- files
+    pD <- methods::as(sample_sheet, "DataFrame")
+    pD[["filenames"]] <- files
     rownames(pD) <- colnames(rgSet)
-    SummarizedExperiment::colData(rgSet) <- methods::as(pD, "DataFrame")
+    rgSet@colData <- pD
   }
 
   rgSet

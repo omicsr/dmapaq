@@ -31,6 +31,7 @@ qc_idats(
   cell_tissue = NULL,
   pca = TRUE,
   pca_vars = c("Sample_Plate", "Sentrix_ID"),
+  max_labels = 15,
   title = paste(array, "Array Quality-Control"),
   author_name = "Unknown",
   author_affiliation = NULL,
@@ -118,6 +119,8 @@ Default is \code{TRUE}.}
 
 \item{pca_vars}{A \code{vector(character)}. Variables to be used with factorial planes.
 Default is \code{c("Sample_Plate", "Sentrix_ID")}.}
+
+\item{max_labels}{A \code{numeric}. The maximum number of labels to show on plots. Default is \code{15}}
 
 \item{title}{A \code{character}. The report's title. Default is \code{paste(array, "Array Quality-Control")}.}
 

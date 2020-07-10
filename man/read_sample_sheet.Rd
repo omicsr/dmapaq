@@ -5,11 +5,12 @@
 \title{read_sample_sheet}
 \usage{
 read_sample_sheet(
-  directory,
+  directory = ".",
   csv_file = "csv$",
   ignore.case = TRUE,
   recursive = TRUE,
-  full.names = TRUE
+  full.names = TRUE,
+  echo = FALSE
 )
 }
 \arguments{
@@ -25,6 +26,8 @@ If \code{FALSE}, the file names (rather than paths) are returned.}
 \item{recursive}{A \code{logical}. Should the listing recurse into directories?}
 
 \item{full.names}{A \code{logical}. Should pattern-matching be case-insensitive?}
+
+\item{echo}{A \code{logical}. Should messages be displayed?}
 }
 \description{
 read_sample_sheet

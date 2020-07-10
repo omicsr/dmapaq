@@ -4,12 +4,15 @@
 \alias{read_metharray}
 \title{read_metharray}
 \usage{
-read_metharray(basenames)
+read_metharray(files, n_cores)
 }
 \arguments{
-\item{basenames}{The \code{basenames} or \code{filenames} of the IDAT files.
+\item{files}{The \code{basenames} or \code{filenames} of the IDAT files.
 \code{basenames} are the filename without the ending \verb{_Grn.idat} or \verb{_Red.idat}.
 \code{filenames} are filenames including \verb{_Grn.idat} or \verb{_Red.idat}.}
+
+\item{n_cores}{An \code{integer}. The number of cores to use,
+i.e., at most how many child processes will be run simultaneously.}
 }
 \description{
 read_metharray
