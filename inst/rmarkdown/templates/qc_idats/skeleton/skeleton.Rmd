@@ -52,7 +52,6 @@ editor_options:
 
 ```{r setup, include = FALSE}
 options(stringsAsFactors = FALSE)
-source('~/disks/PROJECT/_Mickael/PACKAGES/dmapaq/R/read_idats.R')
 
 
 ### Environment ====================================================================================
@@ -65,7 +64,7 @@ suppressPackageStartupMessages({
   library("stats")
   library("utils")
   library("data.table")
-  # library("dmapaq")
+  library("dmapaq")
   library("doParallel")
   library("ENmix")
   library("flashpcaR")
@@ -222,7 +221,7 @@ data.table::fwrite(x = sample_sheet, file = file.path(tempdir(), "sample_sheet.c
 ```
 
 ```{r read-idats}
-data_idats <- read_idats(
+data_idats <- dmapaq::read_idats(
   directory = params[["data_directory"]],
   csv_file = file.path(tempdir(), "sample_sheet.csv"),
   meth_value_type = "B",
