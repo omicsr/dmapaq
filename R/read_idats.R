@@ -187,10 +187,11 @@ read_idats <- function(
   colnames(methylation_matrix) <- minfi::pData(mset)[["Sample_ID"]]
   mset@metadata[[meth_value_type]] <- methylation_matrix
   tmp_phenotypes <- data.table::as.data.table(minfi::pData(rgSet))
-  tmp_phenotypes[, "Sample_ID" := as.character(.SD), .SDcols = "Sample_ID"]
-  tmp_means <- colMeans(data_detP)["Sample_ID"]
+  tmp_phenotypes[, "Sample_ID" := lapply(.SD, as.character), .SDcols = "Sample_ID"]
+  tmp_means <- colMeans(data_detP)[tmp_phenotypes[["Sample_ID"]]]
   tmp_phenotypes[, "mean_detection_pvalue" := tmp_means]
-  tmp_phenotypes[, "call_rate" := (colSums(data_detP < detection_pvalues) / nrow(data_detP))[.SD], .SDcols = "Sample_ID"]
+  tmp_callrate <- (colSums(data_detP < detection_pvalues) / nrow(data_detP))[tmp_phenotypes[["Sample_ID"]]]
+  tmp_phenotypes[, "call_rate" := tmp_callrate]
   mset@metadata[["phenotypes"]] <- tmp_phenotypes
 
   log_msg <- character(0)
