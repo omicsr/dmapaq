@@ -148,61 +148,47 @@ if (nchar(system.file(package = "FlowSorted.Blood.EPIC")) == 0) {
 
 # Methods and Parameters
 
-* Array: `r params[["array"]]`
-* Annotation package from bioconductor: `r params[["annotation"]]`
+Array: `r params[["array"]]`  
+Annotation package from bioconductor: `r params[["annotation"]]`
 
-## Call Rate
-
-* `filter_callrate`: `r params[["filter_callrate"]]`
-* The threshold for the detection pvalues: `r params[["detection_pvalues"]]`
-* The call rate threshold for samples: `r params[["callrate_samples"]]`
-    => should samples with less than the specified call rate (`r params[["callrate_samples"]]`) for detection p-values below $\alpha=`r params[["detection_pvalues"]]`$ be removed?
-* The call rate threshold for probes: `r params[["callrate_probes"]]`
-    => should probes with less than the specified call rate (`r params[["callrate_probes"]]`) for detection p-values below $\alpha=`r params[["detection_pvalues"]]`$ be removed?
-
-## Pre-Processing
-
-* The method to estimate background normal distribution parameters: `r params[["norm_background"]]`
-    => method from [*ENmix*](https://doi.org/doi:10.18129/B9.bioc.ENmix)
-* The dye bias correction: `r params[["norm_dye"]]`
-    => method from [*ENmix*](https://doi.org/doi:10.18129/B9.bioc.ENmix)
-* The quantile normalisation: `r params[["norm_quantile"]]`
-    => method from [*ENmix*](https://doi.org/doi:10.18129/B9.bioc.ENmix)
-
-## Probes Filtering
-
-* `filter_snps`: `r params[["filter_snps"]]`
-    => should probes in which the probed CpG falls near a SNP be removed? ([Zhou et al., 2016](https://www.doi.org/10.1093/nar/gkw967))
-* `filter_non_cpg`: `r params[["filter_non_cpg"]]`
-    => should non-cg probes be removed?
-* `filter_xy`: `r params[["filter_xy"]]`
-    => should probes from X and Y chromosomes be removed?
-* `filter_multihit`: `r params[["filter_multihit"]]` ([Nordlund et al., 2013](https://www.doi.org/10.1186/gb-2013-14-9-r105))
-    => should probes which align to multiple locations be removed?
-* `filter_beads`: `r params[["filter_beads"]]`
-    => should probes with less than three beadcount in at least `r scales::percent(params[["bead_cutoff"]])` of the samples be removed?
-
-## Sex Check
-
-* The threshold value to discrimate sex: `r params[["sex_threshold"]]`
-    => flag samples with sex discrepancy.
-
-## Ethnicity Check
-
-* Name of the ethnicity population: `r if (is.null(params[["population"]])) "Not defined" else params[["population"]]`
-
-## Cell Composition
-
-* The cell tissue: `r params[["cell_tissue"]]`
-    => using a reference panel or `RefFreeCellMix` method from [*RefFreeEWAS*](https://cran.r-project.org/package=RefFreeEWAS)
-
-## Final Processing
-
-* Probe design type bias correction: `r "rcp"`
-    => method from [*ENmix*](https://doi.org/doi:10.18129/B9.bioc.ENmix)
-
-* Batch effect normalisation: `r "ComBat"`
-    => method from [*ENmix*](https://doi.org/doi:10.18129/B9.bioc.ENmix)
+1. Call Rate
+    * `filter_callrate`: `r params[["filter_callrate"]]`  
+    * The threshold for the detection pvalues: `r params[["detection_pvalues"]]`  
+    * The call rate threshold for samples: `r params[["callrate_samples"]]`  
+        => should samples with less than the specified call rate (`r params[["callrate_samples"]]`) for detection p-values below $\alpha=`r params[["detection_pvalues"]]`$ be removed?
+    * The call rate threshold for probes: `r params[["callrate_probes"]]`  
+        => should probes with less than the specified call rate (`r params[["callrate_probes"]]`) for detection p-values below $\alpha=`r params[["detection_pvalues"]]`$ be removed?
+2. Pre-Processing
+    * The method to estimate background normal distribution parameters: `r params[["norm_background"]]`  
+        => method from [*ENmix*](https://doi.org/doi:10.18129/B9.bioc.ENmix)
+    * The dye bias correction: `r params[["norm_dye"]]`  
+        => method from [*ENmix*](https://doi.org/doi:10.18129/B9.bioc.ENmix)
+    * The quantile normalisation: `r params[["norm_quantile"]]`  
+        => method from [*ENmix*](https://doi.org/doi:10.18129/B9.bioc.ENmix)
+3. Probes Filtering
+    * `filter_snps`: `r params[["filter_snps"]]`  
+        => should probes in which the probed CpG falls near a SNP be removed? ([Zhou et al., 2016](https://www.doi.org/10.1093/nar/gkw967))
+    * `filter_non_cpg`: `r params[["filter_non_cpg"]]`  
+        => should non-cg probes be removed?
+    * `filter_xy`: `r params[["filter_xy"]]`  
+        => should probes from X and Y chromosomes be removed?
+    * `filter_multihit`: `r params[["filter_multihit"]]` ([Nordlund et al., 2013](https://www.doi.org/10.1186/gb-2013-14-9-r105))  
+        => should probes which align to multiple locations be removed?
+    * `filter_beads`: `r params[["filter_beads"]]`  
+        => should probes with less than three beadcount in at least `r scales::percent(params[["bead_cutoff"]])` of the samples be removed?
+4. Sex Check
+    * The threshold value to discrimate sex: `r params[["sex_threshold"]]`  
+        => flag samples with sex discrepancy.
+5. Ethnicity Check
+    * Name of the ethnicity population: `r if (is.null(params[["population"]])) "Not defined" else params[["population"]]`
+6. Cell Composition
+    * The cell tissue: `r params[["cell_tissue"]]`  
+        => using a reference panel or `RefFreeCellMix` method from [*RefFreeEWAS*](https://cran.r-project.org/package=RefFreeEWAS)
+7. Final Processing
+    * Probe design type bias correction: `r "rcp"`  
+        => method from [*ENmix*](https://doi.org/doi:10.18129/B9.bioc.ENmix)
+    * Batch effect normalisation: `r "ComBat"`  
+        => method from [*ENmix*](https://doi.org/doi:10.18129/B9.bioc.ENmix)
 
 # Quality Control
 
@@ -220,8 +206,8 @@ if (do_check_sex) {
 data.table::fwrite(x = sample_sheet, file = file.path(tempdir(), "sample_sheet.csv"))
 ```
 
-```{r read-idats}
-data_idats <- dmapaq::read_idats(
+```{r read-idats, include = FALSE}
+data_idats <- read_idats(
   directory = params[["data_directory"]],
   csv_file = file.path(tempdir(), "sample_sheet.csv"),
   meth_value_type = "B",
@@ -243,11 +229,17 @@ data_idats <- dmapaq::read_idats(
   annotation_version = params[["annotation"]],
   n_cores = min(c(nrow(sample_sheet), 25, parallel::detectCores())), 
 )
-cat(data_idats[["log"]], sep = "\n")
 data_mset <- data_idats[["mset"]]
-phenotypes <- as.data.table(data_mset@metadata[["phenotypes"]])[, Sample_ID := as.character(Sample_ID)]
+phenotypes <- as.data.table(data_mset@metadata[["phenotypes"]])[, 
+  (c("Sample_ID", "Sample_Plate", "Sentrix_ID")) := lapply(.SD, as.character),
+  .SDcols = c("Sample_ID", "Sample_Plate", "Sentrix_ID")
+]
 data_rgset <- data_idats[["rgset"]]
 readr::write_rds(x = data_idats, path = file.path(output_directory, paste0(params[["array"]], "_idats.rds")))
+```
+
+```{r read-idats-log}
+cat(paste("+", data_idats[["log"]]), sep = "\n")
 ```
 
 ```{r cohort-overview-table, eval = "qc_observed_sex" %in% names(phenotypes)}
@@ -298,8 +290,6 @@ data.frame(
   gt::opt_row_striping() %>% 
   gt::opt_all_caps() %>% 
   print()
-
-cat("\n")
 ```
 
 ```{r call_rate_samples_fig}
@@ -571,6 +561,7 @@ p_heatmap <- list(
     ggplot2::theme_minimal() +
     ggplot2::theme(
       axis.title = ggplot2::element_blank(),
+      axis.text.y.right = if (nrow(phenotypes) > params[["max_labels"]]) element_blank() else element_text(),
       axis.ticks = ggplot2::element_line(colour = "black"),
       axis.ticks.length = ggplot2::unit(x = 0.1, units = "line")
     ),
@@ -660,11 +651,12 @@ ggplot2::ggplot(data = phenotypes, mapping = ggplot2::aes(x = qc_ymedian - qc_xm
   ) +
   ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.05))) +
   ggplot2::labs(
-    x = expression(atop(
-      paste("Y chromosome median total intensity ", (log[2])),
-      paste("- X chromosome median total intensity ", (log[2]))
-    )),
-    y = "Density"
+    x = paste0(
+      "Y Chromosome Median Total Intensity (log<sub>2</sub>)<br>", 
+      "- X Chromosome Median Total Intensity (log<sub>2</sub>)"
+    ),
+    y = "Density",
+    title = "Sex Threshold Detection"
   )
 ```
 
@@ -684,9 +676,9 @@ ggplot2::ggplot(
     data = data.frame(
       qc_xmedian = c(c(0, 0, 20), c(0, 20, 20)),
       qc_ymedian = c(c(0, 20, 20), c(0, 0, 20)) + sex_threshold,
-      qc_predicted_sex = rep(c(1, 2), each = 3)
+      qc_predicted_sex = factor(rep(c(1, 2), each = 3), levels = c(1, 2), labels = c("Male", "Female"))
     ),
-    mapping = ggplot2::aes(x = qc_xmedian, y = qc_ymedian, fill = factor(qc_predicted_sex)),
+    mapping = ggplot2::aes(x = qc_xmedian, y = qc_ymedian, fill = qc_predicted_sex),
     alpha = 0.1,
     inherit.aes = FALSE
   ) +
@@ -720,26 +712,9 @@ ggplot2::ggplot(
     show.legend = FALSE,
     na.rm = TRUE
   ) +
-  ggplot2::scale_colour_viridis_d(
-    breaks = c(1, 2),
-    labels = c("Male", "Female"),
-    drop = FALSE,
-    begin = 0.2,
-    end = 0.8
-  ) +
-  ggplot2::scale_fill_viridis_d(
-    breaks = c(1, 2),
-    labels = c("Male", "Female"),
-    drop = FALSE,
-    begin = 0.2,
-    end = 0.8
-  ) +
-  ggplot2::scale_shape_manual(
-    breaks = c(1, 2),
-    labels = c("Male", "Female"),
-    values = c(22, 21),
-    drop = FALSE
-  ) +
+  ggplot2::scale_colour_viridis_d(begin = 0.2, end = 0.8, drop = FALSE) +
+  ggplot2::scale_fill_viridis_d(begin = 0.2, end = 0.8, drop = FALSE) +
+  ggplot2::scale_shape_manual(values = c(22, 21), drop = FALSE) +
   ggplot2::scale_linetype_manual(values = 2) +
   ggplot2::labs(
     x = paste("X Chromosome<br><i>Median Total Intensity (log<sub>2</sub>)</i>"),
@@ -878,11 +853,14 @@ for (ibeta in seq_along(list_beta)) {
   pca_dfxy <- merge(x = pca_dfxy, y = pca_phenotypes, by = "Sample_ID")
 
   p_inertia <- ggplot2::ggplot(
-    data = data.frame(
+    data = data.table::data.table(
       y = (pca_res$values / sum(pca_res$values)),
       x = sprintf("PC%02d", seq_along(pca_res$values))
-    ),
-    mapping = ggplot2::aes(x = paste0(x, " (", percent2(y), ")"), y = y)
+    )[x %in% sprintf("PC%02d", 1:fig_n_comp)],
+    mapping = ggplot2::aes(
+      x = paste0(x, "<br><i style='font-size:5pt;'>(", percent2(y), ")</i>"), 
+      y = y
+    )
   ) +
     ggplot2::geom_col(width = 1, colour = "white", fill = scales::viridis_pal(begin = 0.5, end = 0.5)(1), na.rm = TRUE) +
     ggplot2::scale_y_continuous(labels = percent1, expand = ggplot2::expansion(mult = c(0, 0.05))) +
@@ -899,31 +877,44 @@ for (ibeta in seq_along(list_beta)) {
         measure.vars = grep("^PC[0-9]+$", names(pca_dfxy), value = TRUE), 
         variable.name = "pc", 
         value.name = "values"
-      )[pc %in% sprintf("PC%02d", 1:fig_n_comp)][,
-        data.table::as.data.table(stats::anova(stats::lm(
-          formula = stats::as.formula(paste0("values ~ ", paste(keep_technical, collapse = " + "))),
-          data = .SD
-        )), keep.rownames = "term")[term != "Residuals"],
+      )[pc %in% sprintf("PC%02d", 1:n_comp)][,
+        data.table::as.data.table(
+          stats::anova(
+            stats::lm(
+              formula = stats::as.formula(paste0("values ~ ", paste(keep_technical, collapse = " + "))),
+              data = .SD
+            )
+          ), 
+          keep.rownames = "term"
+        )[term != "Residuals"],
         by = "pc"
       ],
       mapping = ggplot2::aes(x = factor(pc), y = term, fill = `Pr(>F)`)
     ) +
       ggplot2::geom_tile(colour = "white", na.rm = TRUE) +
       ggtext::geom_richtext(
-        mapping = ggplot2::aes(label = scientific(`Pr(>F)`, digits = 2)),
+        mapping = ggplot2::aes(
+          label = gsub(
+            pattern = "(.*)e([-+]*)0*(.*)",
+            replacement = "\\1<br>&times;<br>10<sup>\\2\\3</sup>",
+            x = scales::scientific(.data[["Pr(>F)"]], digits = 2)
+          )
+        ),
         colour = "white",
-        size = 3,
+        fill = NA, 
+        label.colour = NA,
+        size = 2.5,
         na.rm = TRUE
       ) +
-      ggplot2::scale_fill_viridis_c(name = "P-Value", na.value = "grey85", limits = c(0, 0.1)) +
+      ggplot2::scale_fill_viridis_c(name = "P-Value", na.value = "grey85", end = 0.75, limits = c(0, 0.1)) +
       ggplot2::theme(panel.grid = ggplot2::element_blank()) +
       ggplot2::scale_x_discrete(
         expand = c(0, 0), 
         labels = function(x) {
           paste0(
-            x, " (",
-            percent2((pca_res$values / sum(pca_res$values))[as.numeric(gsub("PC", "", x))]), 
-            ")"
+            x, "<br><i style='font-size:5pt;'>(",
+            scales::percent_format(accuracy = 0.01, suffix = " %")((pca_res$values / sum(pca_res$values))[as.numeric(gsub("PC", "", x))]), 
+            ")</i>"
           )
         }
       ) +
@@ -942,7 +933,7 @@ for (ibeta in seq_along(list_beta)) {
     
     cat("\n#### Factorial Planes\n\n")
     for (ivar in keep_technical) {
-      cat("\n#### `", ivar, "`\n\n")
+      cat("\n##### `", ivar, "`\n\n", sep = "")
       p <- patchwork::wrap_plots(
         c(
           apply(
@@ -957,12 +948,22 @@ for (ibeta in seq_along(list_beta)) {
                 ggplot2::geom_vline(xintercept = 0, linetype = 2, na.rm = TRUE) +
                 ggplot2::geom_point(na.rm = TRUE) +
                 ggplot2::stat_ellipse(type = "norm", na.rm = TRUE, show.legend = FALSE) +
-                ggplot2::scale_colour_viridis_d(
-                  name = NULL,
-                  begin = if (pca_dfxy[, uniqueN(.SD), .SDcols = ivar]==2) 0.25 else 0,
-                  end = 0.75, 
-                  guide = ggplot2::guide_legend(override.aes = list(size = 4))
-                )
+                {
+                  if (is.numeric(pca_dfxy[[ivar]])) {
+                    ggplot2::scale_colour_viridis_c(
+                      name = NULL,
+                      begin = 0,
+                      end = 0.75
+                    )
+                  } else {
+                    ggplot2::scale_colour_viridis_d(
+                      name = NULL,
+                      begin = if (pca_dfxy[, data.table::uniqueN(.SD), .SDcols = ivar] == 2) 0.25 else 0,
+                      end = 0.75, 
+                      guide = ggplot2::guide_legend(override.aes = list(size = 4))
+                    )
+                  }
+                }
             }
           ), 
           list(p_inertia)
@@ -972,7 +973,8 @@ for (ibeta in seq_along(list_beta)) {
         patchwork::plot_annotation(
           title = paste0("Structure Detection For: '<i>", ivar, "</i>'"),
           caption = paste0("Contribution computed using ", n_comp," principal components."),
-          tag_levels = "A"
+          tag_levels = "A", 
+          theme = ggplot2::theme(plot.title = ggtext::element_markdown())
         )
       print(p)
       cat("\n")
@@ -986,10 +988,10 @@ for (ibeta in seq_along(list_beta)) {
   ][,
     is_outlier := factor(
       x = dist_centre > (
-        stats::quantile(dist_centre, 0.75, na.rm = TRUE) + 1.5 * stats::IQR(dist_centre, na.rm = TRUE)
+        stats::quantile(dist_centre, 0.75, na.rm = TRUE) + params[["pca_outliers"]] * stats::IQR(dist_centre, na.rm = TRUE)
       ) |
         dist_centre < (
-          stats::quantile(dist_centre, 0.25, na.rm = TRUE) - 1.5 * stats::IQR(dist_centre, na.rm = TRUE)
+          stats::quantile(dist_centre, 0.25, na.rm = TRUE) - params[["pca_outliers"]] * stats::IQR(dist_centre, na.rm = TRUE)
         ),
       levels = c(FALSE, TRUE), 
       labels = c("No", "Yes")
@@ -1028,12 +1030,29 @@ for (ibeta in seq_along(list_beta)) {
     guides = "collect"
   ) + 
     patchwork::plot_annotation(
-      title = paste0("Outliers Detection In Factorial Planes"),
-      caption = paste0("Contribution computed using ", n_comp," principal components."),
-      tag_levels = "A"
+      title = "Outliers Detection In Factorial Planes",
+      caption = paste0(
+        "Outliers defined for a Euclidean distance from cohort centroid (based on the principal components up to ", fig_n_comp, "):<br>",
+        "&bull; higher than ", params[["pca_outliers"]], " times the interquartile range above the 75<sup>th</sup> percentile.<br>",
+        "&bull; lower than ", params[["pca_outliers"]], " times the interquartile range below the 25<sup>th</sup> percentile.<br>",
+        "Contribution computed using ", n_comp," principal components."
+      ),
+      tag_levels = "A", 
+      theme = ggplot2::theme(plot.subtitle = ggtext::element_markdown(size = ggplot2::rel(0.8), face = "italic"))
     )
+  
   print(p)
-
+  cat("\n")
+  gt::gt(
+    data = pca_dfxy[is_outlier == "Yes", .SD, .SDcols = c("Sample_ID", pca_vars, sprintf("PC%02d", 1:fig_n_comp))], 
+    auto_align = "center"
+  ) %>%
+    gt::tab_header(title = "Samples Identified As Possible Outliers") %>%
+    gt::fmt_number(columns = sprintf("PC%02d", 1:fig_n_comp), decimals = 2) %>%
+    gt::opt_row_striping() %>%
+    gt::opt_all_caps() %>%
+    print()
+  
 }
 ```
 
