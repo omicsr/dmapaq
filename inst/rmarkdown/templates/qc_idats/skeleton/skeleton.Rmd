@@ -194,7 +194,7 @@ Annotation package from bioconductor: `r params[["annotation"]]`
 
 ```{r sample-sheet}
 sample_sheet <- data.table::fread(params[["csv_file"]], skip = "Sample_Name")
-sample_sheet[, Sample_ID := as.chracter(Sample_Name)]
+sample_sheet[, Sample_ID := as.character(Sample_Name)]
 
 if (do_check_sex) {
   sample_sheet[, qc_observed_sex := c("1" = 1, "2" = 2, "M" = 1, "F" = 2, "0" = 2)[get(params[["sex_colname"]])]]
