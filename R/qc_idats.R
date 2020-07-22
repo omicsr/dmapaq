@@ -53,6 +53,8 @@
 #'     Default is `TRUE`.
 #' @param pca_vars A `vector(character)`. Variables to be used with factorial planes.
 #'     Default is `c("Sample_Plate", "Sentrix_ID")`.
+#' @param pca_threshold A `numeric`. The number of times the interquartile range from the upper
+#'     and lower quartile at which sa sample is defined as an outlier. Default is `2`.
 #' @param max_labels A `numeric`. The maximum number of labels to show on plots. Default is `15`
 #' @param title A `character`. The report's title. Default is `paste(array, "Array Quality-Control")`.
 #' @param author_name A `character`. The author's name to be printed in the report.
@@ -95,6 +97,7 @@ qc_idats <- function(
   cell_tissue = NULL,
   pca = TRUE,
   pca_vars = c("Sample_Plate", "Sentrix_ID"),
+  pca_threshold = 2,
   max_labels = 15,
   title = paste(array, "Array Quality-Control"),
   author_name = "Unknown",
@@ -149,6 +152,7 @@ qc_idats <- function(
       cell_tissue = cell_tissue,
       pca = pca,
       pca_vars = pca_vars,
+      pca_threshold = pca_threshold,
       max_labels = max_labels,
       title = title,
       author_name = author_name,

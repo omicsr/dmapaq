@@ -2,8 +2,10 @@
 
 * In [rmarkdown templates](inst/rmarkdown/templates),
     + Fix reference for ComBat.
+    + Fix missing params in YAML.
 * In `read_idats.R`,
     + Fix dataset for population specific CpG/SNPs.
+    + Fix missing params in YAML.
 
 # dmapaq 0.3.0
 

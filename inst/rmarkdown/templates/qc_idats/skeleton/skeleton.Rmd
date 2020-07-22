@@ -28,6 +28,7 @@ params:
   cell_tissue: NULL
   pca: TRUE
   pca_vars: !r c("Sample_Plate", "Sentrix_ID")
+  pca_threshold: 2
   max_labels: 15
 title: '`r params[["title"]]`'
 author:
@@ -564,7 +565,8 @@ p_heatmap <- list(
       axis.text.y.right = if (nrow(phenotypes) > params[["max_labels"]]) element_blank() else element_text(),
       axis.ticks = ggplot2::element_line(colour = "black"),
       axis.ticks.length = ggplot2::unit(x = 0.1, units = "line")
-    ),
+    ) +
+    ggplot2::labs(x = "Cell Type", y = "Sample"),
   
   ggplot2::ggplot() +
     ggplot2::geom_segment(
@@ -988,10 +990,10 @@ for (ibeta in seq_along(list_beta)) {
   ][,
     is_outlier := factor(
       x = dist_centre > (
-        stats::quantile(dist_centre, 0.75, na.rm = TRUE) + params[["pca_outliers"]] * stats::IQR(dist_centre, na.rm = TRUE)
+        stats::quantile(dist_centre, 0.75, na.rm = TRUE) + params[["pca_threshold"]] * stats::IQR(dist_centre, na.rm = TRUE)
       ) |
         dist_centre < (
-          stats::quantile(dist_centre, 0.25, na.rm = TRUE) - params[["pca_outliers"]] * stats::IQR(dist_centre, na.rm = TRUE)
+          stats::quantile(dist_centre, 0.25, na.rm = TRUE) - params[["pca_threshold"]] * stats::IQR(dist_centre, na.rm = TRUE)
         ),
       levels = c(FALSE, TRUE), 
       labels = c("No", "Yes")
@@ -1033,8 +1035,8 @@ for (ibeta in seq_along(list_beta)) {
       title = "Outliers Detection In Factorial Planes",
       caption = paste0(
         "Outliers defined for a Euclidean distance from cohort centroid (based on the principal components up to ", fig_n_comp, "):<br>",
-        "&bull; higher than ", params[["pca_outliers"]], " times the interquartile range above the 75<sup>th</sup> percentile.<br>",
-        "&bull; lower than ", params[["pca_outliers"]], " times the interquartile range below the 25<sup>th</sup> percentile.<br>",
+        "&bull; higher than ", params[["pca_threshold"]], " times the interquartile range above the 75<sup>th</sup> percentile.<br>",
+        "&bull; lower than ", params[["pca_threshold"]], " times the interquartile range below the 25<sup>th</sup> percentile.<br>",
         "Contribution computed using ", n_comp," principal components."
       ),
       tag_levels = "A", 
