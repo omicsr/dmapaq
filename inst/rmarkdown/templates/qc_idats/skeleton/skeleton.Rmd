@@ -188,7 +188,7 @@ Annotation package from bioconductor: `r params[["annotation"]]`
     * Probe design type bias correction: `r "rcp"`  
         => method from [*ENmix*](https://doi.org/doi:10.18129/B9.bioc.ENmix)
     * Batch effect normalisation: `r "ComBat"`  
-        => method from [*ENmix*](https://doi.org/doi:10.18129/B9.bioc.ENmix)
+        => method from [*sva*](https://doi.org/doi:10.18129/B9.bioc.sva)
 
 # Quality Control
 
