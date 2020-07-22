@@ -1,3 +1,10 @@
+# dmapaq 0.3.1
+
+* In [rmarkdown templates](inst/rmarkdown/templates),
+    + Fix reference for ComBat.
+* In `read_idats.R`,
+    + Fix dataset for population specific CpG/SNPs.
+
 # dmapaq 0.3.0
 
 * In [rmarkdown templates](inst/rmarkdown/templates),
