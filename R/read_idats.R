@@ -112,12 +112,6 @@ read_idats <- function(
   }
 
   if (filter_snps) {
-    manifest_hg19 <- switch(
-      EXPR = array_name,
-      "450k" = get(utils::data("hm450.manifest.hg19", package = "ChAMPdata")),
-      "EPIC" = get(utils::data("EPIC.manifest.hg19", package = "ChAMPdata"))
-    )
-
     ref_population <- c(
       "AFR", "EAS", "EUR",
       "SAS", "AMR", "GWD", "YRI", "TSI", "IBS",
@@ -128,9 +122,19 @@ read_idats <- function(
     )
 
     if (is.null(population) || !(population %in% ref_population)) {
+      manifest_hg19 <- switch(
+        EXPR = array_name,
+        "450k" = get(utils::data("hm450.manifest.hg19", package = "ChAMPdata")),
+        "EPIC" = get(utils::data("EPIC.manifest.hg19", package = "ChAMPdata"))
+      )
       which_population <- which(manifest_hg19$MASK_general)
     } else {
-      which_population <- which(manifest_hg19[, paste("MASK_general", population, sep = ".")])
+      manifest_hg19 <- switch(
+        EXPR = array_name,
+        "450k" = get(utils::data("hm450.manifest.pop.hg19", package = "ChAMPdata")),
+        "EPIC" = get(utils::data("EPIC.manifest.pop.hg19", package = "ChAMPdata"))
+      )
+      which_population <- which(manifest_hg19[, paste("MASK_general", population, sep = "_")])
     }
     maskname <- rownames(manifest_hg19)[which_population]
     mset_f2 <- mset[!minfi::featureNames(mset) %in% maskname, ]
