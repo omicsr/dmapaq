@@ -293,7 +293,7 @@ data.frame(
   print()
 ```
 
-```{r call_rate_samples_fig}
+```{r call-rate-samples-fig}
 ggplot2::ggplot(
   data = phenotypes[order(call_rate), .(Sample_ID, call_rate)][, 
     c("x", "labs") := list(1:.N, ifelse(call_rate < params[["callrate_samples"]], Sample_ID, NA))
@@ -331,7 +331,7 @@ ggplot2::ggplot(
 
 ## Cell composition
 
-```{r do_cell_composition, eval = do_cell_composition}
+```{r do-cell-composition, eval = do_cell_composition}
 if (
   grepl("^blood$", params[["cell_tissue"]], ignore.case = TRUE) &
     nchar(system.file(package = paste0("FlowSorted.Blood.", params[["array"]]))) == 0
@@ -360,7 +360,7 @@ if (
 }
 ```
 
-```{r do_cell_composition_msg}
+```{r do-cell-composition_msg}
 if (!do_cell_composition) {
   cat("No cell tissue was provided or no available reference set (packages).\n")
 } else {
@@ -368,7 +368,7 @@ if (!do_cell_composition) {
 }
 ```
 
-```{r cell_composition, eval = do_cell_composition, include = FALSE}
+```{r cell-composition, eval = do_cell_composition, include = FALSE}
 cell_comp <- switch(
   EXPR = tolower(params[["cell_tissue"]]),
   "blood" = {
@@ -512,7 +512,7 @@ phenotypes <- merge(
 )
 ```
 
-```{r cell_composition_fig, eval = do_cell_composition}
+```{r cell-composition-fig, eval = do_cell_composition}
 cell_cols <- grep("^CellT_", names(phenotypes), value = TRUE)
 dd_row <- stats::as.dendrogram(
   stats::hclust(
@@ -596,13 +596,13 @@ patchwork::wrap_plots(p_heatmap, design = "BD\nAC", guides = "collect", widths =
 
 ## Sex check
 
-```{r do_check_sex}
+```{r do-check-sex}
 if (!do_check_sex) {
   cat("No phenotypes for sex was provided.\n")
 }
 ```
 
-```{r sex_check_computation, eval = do_check_sex, include = FALSE}
+```{r sex-check-computation, eval = do_check_sex, include = FALSE}
 if (is.null(params[["sex_threshold"]])) {
   sex_predicted <- minfi::getSex(minfi::mapToGenome(data_rgset), cutoff = -2)
   sex_density <- stats::density(sex_predicted$yMed - sex_predicted$xMed, n = 100000)
@@ -639,7 +639,7 @@ phenotypes[,
 ]
 ```
 
-```{r sex_check_threshold, eval = do_check_sex}
+```{r sex-check-threshold, eval = do_check_sex}
 ggplot2::ggplot(data = phenotypes, mapping = ggplot2::aes(x = qc_ymedian - qc_xmedian)) +
   ggplot2::geom_density(na.rm = TRUE) +
   ggplot2::geom_vline(xintercept = sex_threshold, linetype = 2, colour = "firebrick2", na.rm = TRUE) +
@@ -662,7 +662,7 @@ ggplot2::ggplot(data = phenotypes, mapping = ggplot2::aes(x = qc_ymedian - qc_xm
   )
 ```
 
-```{r sex_check_fig, eval = do_check_sex}
+```{r sex-check-fig, eval = do_check_sex}
 axis_limits <- range(phenotypes[, c("qc_xmedian", "qc_ymedian")], na.rm = TRUE)
 
 ggplot2::ggplot(
@@ -740,7 +740,7 @@ ggplot2::ggplot(
   ggplot2::coord_cartesian(xlim = axis_limits, ylim = axis_limits)
 ```
 
-```{r discrepancy_table, eval = do_check_sex}
+```{r discrepancy-table, eval = do_check_sex}
 data.table::dcast(
   data = phenotypes[, .N, by = c("qc_predicted_sex", "qc_observed_sex")][,
     (c("qc_predicted_sex", "qc_observed_sex")) := list(
@@ -758,7 +758,7 @@ data.table::dcast(
   print()
 ```
 
-```{r discrepancy_samples_table, eval = do_check_sex}
+```{r discrepancy-samples-table, eval = do_check_sex}
 if (any(phenotypes[["qc_sex_discrepancy"]])) {
   phenotypes[(qc_sex_discrepancy), .(Sample_Name, Sample_ID, qc_observed_sex, qc_predicted_sex)] %>% 
     gt::gt(auto_align = "center") %>%
@@ -991,10 +991,7 @@ for (ibeta in seq_along(list_beta)) {
     is_outlier := factor(
       x = dist_centre > (
         stats::quantile(dist_centre, 0.75, na.rm = TRUE) + params[["pca_threshold"]] * stats::IQR(dist_centre, na.rm = TRUE)
-      ) |
-        dist_centre < (
-          stats::quantile(dist_centre, 0.25, na.rm = TRUE) - params[["pca_threshold"]] * stats::IQR(dist_centre, na.rm = TRUE)
-        ),
+      ),
       levels = c(FALSE, TRUE), 
       labels = c("No", "Yes")
     )
@@ -1060,7 +1057,7 @@ for (ibeta in seq_along(list_beta)) {
 
 # R session information
 
-```{r session_info, results = "markup"}
+```{r session-info, results = "markup"}
 options("width" = 110)
 sessioninfo::session_info()
 ```
