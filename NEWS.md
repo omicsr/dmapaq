@@ -1,5 +1,9 @@
 # dmapaq (development version)
 
+* In [rmarkdown templates](inst/rmarkdown/templates),
+    + Remove unnecessary lower condition for outliers.
+    + Replace underscore with dash.
+
 # dmapaq 0.3.1
 
 * In [rmarkdown templates](inst/rmarkdown/templates),
