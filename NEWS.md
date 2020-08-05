@@ -1,4 +1,4 @@
-# dmapaq (development version)
+# dmapaq 0.3.2
 
 * In [rmarkdown templates](inst/rmarkdown/templates),
     + Remove unnecessary lower condition for outliers.
