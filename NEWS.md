@@ -3,6 +3,7 @@
 * In [rmarkdown templates](inst/rmarkdown/templates),
     + Remove unnecessary lower condition for outliers.
     + Replace underscore with dash.
+    + Fix PCA section.
 
 # dmapaq 0.3.1
 
