@@ -1,3 +1,9 @@
+# dmapaq 0.3.3
+
+* In [rmarkdown templates](inst/rmarkdown/templates),
+    + Update obsolete captions.
+    + Perform independent association testing between technical variables and principal components.
+
 # dmapaq 0.3.2
 
 * In [rmarkdown templates](inst/rmarkdown/templates),
