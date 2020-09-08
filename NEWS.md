@@ -1,4 +1,4 @@
-# dmapaq 0.3.3
+# dmapaq (development version)
 
 * In [rmarkdown templates](inst/rmarkdown/templates),
     + Update obsolete captions.
