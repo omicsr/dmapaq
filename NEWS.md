@@ -3,6 +3,7 @@
 * In [rmarkdown templates](inst/rmarkdown/templates),
     + Update obsolete captions.
     + Perform independent association testing between technical variables and principal components.
+    + Fix `ggplot2` issue with legend components defined in `theme_set()`.
 
 # dmapaq 0.3.2
 

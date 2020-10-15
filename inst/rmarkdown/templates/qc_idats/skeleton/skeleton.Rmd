@@ -116,10 +116,7 @@ ggplot2::theme_set(
       axis.title.y = ggtext::element_markdown(),
       axis.text.x = ggtext::element_markdown(),
       axis.text.x.top = ggtext::element_markdown(),
-      axis.text.y = ggtext::element_markdown(),
-      legend.box.just = "left",
-      legend.key.size = ggplot2::unit(0.5, "lines"),
-      legend.text = ggtext::element_markdown(size = ggplot2::rel(0.5))
+      axis.text.y = ggtext::element_markdown()
     )
 )
 
@@ -297,9 +294,9 @@ data.frame(
 ggplot2::ggplot(
   data = phenotypes[order(call_rate), .(Sample_ID, call_rate)][, 
     c("x", "labs") := list(1:.N, ifelse(call_rate < params[["callrate_samples"]], Sample_ID, NA))
-  ],
-  mapping = ggplot2::aes(x = seq_along(call_rate), y = call_rate)
+  ]
 ) +
+  ggplot2::aes(x = seq_along(call_rate), y = call_rate) +
   ggplot2::geom_point(
     colour = scales::viridis_pal(begin = 0.5, end = 0.5)(1), 
     shape = 1, 
@@ -537,9 +534,13 @@ p_heatmap <- list(
           factor(Sample_ID, levels = phenotypes[stats::order.dendrogram(dd_row), Sample_ID]),
           factor(variable, levels = cell_cols[stats::order.dendrogram(dd_col)])
         )
-    ],
-    mapping = ggplot2::aes(x = variable, y = Sample_ID, fill = scales::rescale(value, to = c(0, 1)))
+    ]
   ) +
+    ggplot2::aes(
+      x = variable, 
+      y = Sample_ID, 
+      fill = scales::rescale(value, to = c(0, 1))
+    ) +
     ggplot2::geom_tile() +
     ggplot2::scale_x_discrete(
       expand = c(0, 0), 
@@ -640,7 +641,8 @@ phenotypes[,
 ```
 
 ```{r sex-check-threshold, eval = do_check_sex}
-ggplot2::ggplot(data = phenotypes, mapping = ggplot2::aes(x = qc_ymedian - qc_xmedian)) +
+ggplot2::ggplot(data = phenotypes) + 
+  ggplot2::aes(x = qc_ymedian - qc_xmedian) +
   ggplot2::geom_density(na.rm = TRUE) +
   ggplot2::geom_vline(xintercept = sex_threshold, linetype = 2, colour = "firebrick2", na.rm = TRUE) +
   ggplot2::scale_x_continuous(
@@ -665,15 +667,13 @@ ggplot2::ggplot(data = phenotypes, mapping = ggplot2::aes(x = qc_ymedian - qc_xm
 ```{r sex-check-fig, eval = do_check_sex}
 axis_limits <- range(phenotypes[, c("qc_xmedian", "qc_ymedian")], na.rm = TRUE)
 
-ggplot2::ggplot(
-  data = phenotypes,
-  mapping = ggplot2::aes(
+ggplot2::ggplot(data = phenotypes) +
+  ggplot2::aes(
     x = qc_xmedian,
     y = qc_ymedian,
     shape = factor(qc_observed_sex),
     colour = factor(qc_observed_sex)
-  )
-) +
+  ) +
   ggplot2::geom_polygon(
     data = data.frame(
       qc_xmedian = c(c(0, 0, 20), c(0, 20, 20)),
@@ -800,7 +800,7 @@ readr::write_rds(
   path = file.path(output_directory, paste0(params[["array"]], "_QC_mset.rds"))
 )
 data.table::fwrite(
-  x = data.table::as.data.table(norm_beta)[, cpg_id := rownames(norm_beta)],
+  x = data.table::as.data.table(norm_beta, keep.rownames = "cpg_id"),
   file = file.path(output_directory, paste0(params[["array"]], "_QC_betavalues.csv.gz"))
 )
 data.table::fwrite(
@@ -817,7 +817,6 @@ data_batch <- list(
 	"raw_beta" = `colnames<-`(minfi::getBeta(data_rgset), minfi::pData(data_rgset)[, "Sample_ID"]),
 	"norm_beta" = data_mset@metadata[["norm_beta_values"]]
 )
-		
 
 for (ibeta in seq_along(list_beta)) {
 	cat("\n###", list_beta[ibeta], "\n\n")
@@ -830,7 +829,9 @@ for (ibeta in seq_along(list_beta)) {
   fig_n_comp <- min(3, ncol(pca_methylation))
   
   keep_technical <- names(which(sapply(pca_phenotypes[, 
-    lapply(.SD, function(x) (data.table::uniqueN(x) > 1 & data.table::uniqueN(x) < length(x))) | is.numeric(x), 
+    lapply(.SD, function(x) {
+      (data.table::uniqueN(x) > 1 & data.table::uniqueN(x) < length(x)) | is.numeric(x)
+    }), 
     .SDcols = pca_vars
   ], isTRUE)))
   
@@ -858,14 +859,22 @@ for (ibeta in seq_along(list_beta)) {
     data = data.table::data.table(
       y = pca_res[["pve"]],
       x = sprintf("PC%02d", seq_along(pca_res[["pve"]]))
-    )[x %in% sprintf("PC%02d", 1:fig_n_comp)],
-    mapping = ggplot2::aes(
+    )[x %in% sprintf("PC%02d", 1:fig_n_comp)]
+  ) +
+    ggplot2::aes(
       x = paste0(x, "<br><i style='font-size:5pt;'>(", percent2(y), ")</i>"), 
       y = y
-    )
-  ) +
-    ggplot2::geom_col(width = 1, colour = "white", fill = scales::viridis_pal(begin = 0.5, end = 0.5)(1), na.rm = TRUE) +
-    ggplot2::scale_y_continuous(labels = percent1, expand = ggplot2::expansion(mult = c(0, 0.05))) +
+    ) +
+    ggplot2::geom_col(
+      width = 1, 
+      colour = "white", 
+      fill = scales::viridis_pal(begin = 0.5, end = 0.5)(1), 
+      na.rm = TRUE
+    ) +
+    ggplot2::scale_y_continuous(
+      labels = percent1, 
+      expand = ggplot2::expansion(mult = c(0, 0.05))
+    ) +
     ggplot2::labs(
       x = "Principal Components",
       y = "Contribution"
@@ -881,7 +890,9 @@ for (ibeta in seq_along(list_beta)) {
     )[pc %in% sprintf("PC%02d", 1:n_comp)][,
       {
         m <- stats::model.matrix(
-          object = stats::as.formula(paste0("values ~ ", paste(keep_technical, collapse = " + "))),
+          object = stats::as.formula(
+            object = paste0("values ~ ", paste(keep_technical, collapse = " + "))
+          ),
           data = .SD
         )
 
@@ -889,38 +900,40 @@ for (ibeta in seq_along(list_beta)) {
           out <- data.table::as.data.table(
             stats::anova(
               stats::lm(
-                formula = stats::as.formula(paste0("values ~ ", paste(keep_technical, collapse = " + "))),
+                formula = stats::as.formula(
+                  object = paste0("values ~ ", paste(keep_technical, collapse = " + "))
+                ),
                 data = .SD
               )
             ),
             keep.rownames = "term"
           )[term != "Residuals"]
         } else {
-          out <- data.table::rbindlist(lapply(X = keep_technical, .data = .SD, FUN = function(.x, .data) {
-            data.table::as.data.table(
-              stats::anova(
-                stats::lm(
-                  formula = stats::as.formula(paste0("values ~ ", .x)),
-                  data = .SD
-                )
-              ),
-              keep.rownames = "term"
-            )[term != "Residuals"]
-          }))
+          out <- data.table::rbindlist(
+            lapply(X = keep_technical, .data = .SD, FUN = function(.x, .data) {
+              data.table::as.data.table(
+                stats::anova(
+                  stats::lm(
+                    formula = stats::as.formula(paste0("values ~ ", .x)),
+                    data = .SD
+                  )
+                ),
+                keep.rownames = "term"
+              )[term != "Residuals"]
+            })
+          )
         }
         out[, full_rank := qr(m)$rank == ncol(m)]
       },
       by = "pc"
     ]
 
-    p_association <- ggplot2::ggplot(
-      data = asso_dt,
-      mapping = ggplot2::aes(
+    p_association <- ggplot2::ggplot(data = asso_dt) +
+      ggplot2::aes(
         x = factor(.data[["pc"]]),
         y = factor(.data[["term"]], levels = sort(unique(.data[["term"]]), decreasing = TRUE)),
         fill = .data[["Pr(>F)"]]
-      )
-    ) +
+      ) +
       ggplot2::geom_tile(colour = "white", na.rm = TRUE) +
       ggtext::geom_richtext(
         mapping = ggplot2::aes(
@@ -936,7 +949,7 @@ for (ibeta in seq_along(list_beta)) {
         size = 2.5,
         na.rm = TRUE
       ) +
-      ggplot2::scale_fill_viridis_c(name = "P-Value", na.value = "grey85", end = 0.75, limits = c(0, 0.1)) +
+      ggplot2::scale_fill_viridis_c(na.value = "grey85", end = 0.75, limits = c(0, 0.1)) +
       ggplot2::theme(panel.grid = ggplot2::element_blank()) +
       ggplot2::scale_x_discrete(
         expand = c(0, 0),
@@ -964,7 +977,8 @@ for (ibeta in seq_along(list_beta)) {
             "Variables are independently tested against principal components using ANOVA",
             "(*i.e.*, model matrix is not full rank)."
           )
-        )
+        ),
+        fill = "P-Value"
       )
     
     print(p_association)
@@ -979,14 +993,11 @@ for (ibeta in seq_along(list_beta)) {
             X = utils::combn(sprintf("PC%02d", 1:fig_n_comp), 2),
             MARGIN = 2,
             FUN = function(x) {
-              ggplot2::ggplot(
-                data = pca_dfxy[, .SD, .SDcols = c(ivar, x)],
-                mapping = ggplot2::aes(x = .data[[x[1]]], y = .data[[x[2]]], colour = .data[[ivar]])
-              ) +
+              ggplot2::ggplot(data = pca_dfxy[, .SD, .SDcols = c(ivar, x)]) +
+                ggplot2::aes(x = .data[[x[1]]], y = .data[[x[2]]], colour = .data[[ivar]]) +
                 ggplot2::geom_hline(yintercept = 0, linetype = 2, na.rm = TRUE) +
                 ggplot2::geom_vline(xintercept = 0, linetype = 2, na.rm = TRUE) +
                 ggplot2::geom_point(na.rm = TRUE) +
-                ggplot2::stat_ellipse(type = "norm", na.rm = TRUE, show.legend = FALSE) +
                 {
                   if (is.numeric(pca_dfxy[[ivar]])) {
                     ggplot2::scale_colour_viridis_c(
@@ -995,11 +1006,14 @@ for (ibeta in seq_along(list_beta)) {
                       end = 0.75
                     )
                   } else {
-                    ggplot2::scale_colour_viridis_d(
-                      name = NULL,
-                      begin = if (pca_dfxy[, data.table::uniqueN(.SD), .SDcols = ivar] == 2) 0.25 else 0,
-                      end = 0.75, 
-                      guide = ggplot2::guide_legend(override.aes = list(size = 4))
+                    list(
+                      ggplot2::stat_ellipse(type = "norm", na.rm = TRUE, show.legend = FALSE),
+                      ggplot2::scale_colour_viridis_d(
+                        name = NULL,
+                        begin = if (pca_dfxy[, data.table::uniqueN(.SD), .SDcols = ivar] == 2) 0.25 else 0,
+                        end = 0.75, 
+                        guide = ggplot2::guide_legend(override.aes = list(size = 4))
+                      )
                     )
                   }
                 }
@@ -1026,7 +1040,8 @@ for (ibeta in seq_along(list_beta)) {
   ][,
     is_outlier := factor(
       x = dist_centre > (
-        stats::quantile(dist_centre, 0.75, na.rm = TRUE) + params[["pca_threshold"]] * stats::IQR(dist_centre, na.rm = TRUE)
+        stats::quantile(dist_centre, 0.75, na.rm = TRUE) + 
+          params[["pca_threshold"]] * stats::IQR(dist_centre, na.rm = TRUE)
       ),
       levels = c(FALSE, TRUE), 
       labels = c("No", "Yes")
@@ -1038,15 +1053,13 @@ for (ibeta in seq_along(list_beta)) {
         X = utils::combn(sprintf("PC%02d", 1:fig_n_comp), 2),
         MARGIN = 2,
         FUN = function(x) {
-          ggplot2::ggplot(
-            data = pca_dfxy[, .SD, .SDcols = c("is_outlier", x)],
-            mapping = ggplot2::aes(
+          ggplot2::ggplot(data = pca_dfxy[, .SD, .SDcols = c("is_outlier", x)]) +
+            ggplot2::aes(
               x = .data[[x[1]]], 
               y = .data[[x[2]]], 
               colour = is_outlier, 
               shape = is_outlier
-            )
-          ) +
+            ) +
             ggplot2::geom_hline(yintercept = 0, linetype = 2, na.rm = TRUE) +
             ggplot2::geom_vline(xintercept = 0, linetype = 2, na.rm = TRUE) +
             ggplot2::geom_point(na.rm = TRUE) +
@@ -1067,17 +1080,25 @@ for (ibeta in seq_along(list_beta)) {
     patchwork::plot_annotation(
       title = "Outliers Detection In Factorial Planes",
       caption = paste0(
-        "Outliers defined for a Euclidean distance from cohort centroid (based on the principal components up to ", fig_n_comp, ")<br>",
-        "higher than ", params[["pca_threshold"]], " times the interquartile range above the 75<sup>th</sup> percentile."
+        "Outliers defined for a Euclidean distance from cohort centroid",
+        " (based on the principal components up to ", fig_n_comp, ")<br>",
+        "higher than ", params[["pca_threshold"]], " times the interquartile",
+        " range above the 75<sup>th</sup> percentile."
       ),
       tag_levels = "A", 
-      theme = ggplot2::theme(plot.subtitle = ggtext::element_markdown(size = ggplot2::rel(0.8), face = "italic"))
+      theme = ggplot2::theme(
+        plot.subtitle = ggtext::element_markdown(size = ggplot2::rel(0.8), face = "italic")
+      )
     )
   
   print(p)
   cat("\n")
   gt::gt(
-    data = pca_dfxy[is_outlier == "Yes", .SD, .SDcols = c("Sample_ID", pca_vars, sprintf("PC%02d", 1:fig_n_comp))], 
+    data = pca_dfxy[
+      is_outlier == "Yes", 
+      .SD, 
+      .SDcols = c("Sample_ID", pca_vars, sprintf("PC%02d", 1:fig_n_comp))
+    ], 
     auto_align = "center"
   ) %>%
     gt::tab_header(title = "Samples Identified As Possible Outliers") %>%
