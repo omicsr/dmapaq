@@ -1,5 +1,3 @@
-# dmapaq (development version)
-
 # dmapaq 0.3.3
 
 * In [rmarkdown templates](inst/rmarkdown/templates),
