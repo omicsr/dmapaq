@@ -1,4 +1,9 @@
-# dmapaq (development version)
+# dmapaq 0.3.4
+
+* In [rmarkdown templates](inst/rmarkdown/templates),
+    + Explicit use of `Sample_ID` as the unique IDs for samples.
+* In `read_idats.R`,
+    + Explicit use of `Sample_ID` as the unique IDs for samples.
 
 # dmapaq 0.3.3
 
