@@ -76,7 +76,6 @@ read_idats <- function(
     "EPIC" = c(array = "IlluminaHumanMethylationEPIC", annotation = annotation_version)
   )
 
-  minfi::sampleNames(rgSet) <- rgSet[[1]]
   data_detP <- minfi::detectionP(rgSet)
   data_detP[is.na(data_detP)] <- 1
 
@@ -474,6 +473,8 @@ read_metharray_exp <- function(
     rownames(pD) <- colnames(rgSet)
     rgSet@colData <- pD
   }
+
+  minfi::sampleNames(rgSet) <- rgSet[["Sample_ID"]]
 
   rgSet
 }

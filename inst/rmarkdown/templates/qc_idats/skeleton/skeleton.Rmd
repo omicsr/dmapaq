@@ -122,6 +122,7 @@ ggplot2::theme_set(
 
 
 ### Functions ======================================================================================
+`:=` <- data.table::`:=`
 `%>%` <- gt::`%>%`
 
 percent0 <- scales::percent_format(accuracy = 1, suffix = " %")
@@ -192,7 +193,13 @@ Annotation package from bioconductor: `r params[["annotation"]]`
 
 ```{r sample-sheet}
 sample_sheet <- data.table::fread(params[["csv_file"]], skip = "Sample_Name")
-sample_sheet[, Sample_ID := as.character(Sample_Name)]
+sample_sheet[, 
+  Sample_ID := {
+    x <- as.character(1:.N)
+    data.table::fifelse(x == "1", as.character(Sample_Name), paste(Sample_Name, x, sep = "_"))
+  }, 
+  by = "Sample_Name"
+]
 
 if (do_check_sex) {
   sample_sheet[, qc_observed_sex := c("1" = 1, "2" = 2, "M" = 1, "F" = 2, "0" = 2)[get(params[["sex_colname"]])]]
@@ -225,7 +232,7 @@ data_idats <- read_idats(
   norm_quantile = params[["norm_quantile"]],
   array_name = params[["array"]],
   annotation_version = params[["annotation"]],
-  n_cores = min(c(nrow(sample_sheet), 25, parallel::detectCores())), 
+  n_cores = min(c(nrow(sample_sheet), 25, parallel::detectCores()))
 )
 data_mset <- data_idats[["mset"]]
 phenotypes <- as.data.table(data_mset@metadata[["phenotypes"]])[, 
@@ -233,7 +240,7 @@ phenotypes <- as.data.table(data_mset@metadata[["phenotypes"]])[,
   .SDcols = c("Sample_ID", "Sample_Plate", "Sentrix_ID")
 ]
 data_rgset <- data_idats[["rgset"]]
-readr::write_rds(x = data_idats, path = file.path(output_directory, paste0(params[["array"]], "_idats.rds")))
+readr::write_rds(x = data_idats, file = file.path(output_directory, paste0(params[["array"]], "_idats.rds")))
 ```
 
 ```{r read-idats-log}
@@ -797,7 +804,7 @@ data_mset@metadata[["phenotypes"]] <- phenotypes
 ```{r export}
 readr::write_rds(
   x = data_mset,
-  path = file.path(output_directory, paste0(params[["array"]], "_QC_mset.rds"))
+  file = file.path(output_directory, paste0(params[["array"]], "_QC_mset.rds"))
 )
 data.table::fwrite(
   x = data.table::as.data.table(norm_beta, keep.rownames = "cpg_id"),
@@ -877,7 +884,7 @@ for (ibeta in seq_along(list_beta)) {
     ) +
     ggplot2::labs(
       x = "Principal Components",
-      y = "Contribution"
+      y = "Variance Explained"
     )
 
   if (length(keep_technical) > 0) {
@@ -1013,7 +1020,12 @@ for (ibeta in seq_along(list_beta)) {
                         begin = if (pca_dfxy[, data.table::uniqueN(.SD), .SDcols = ivar] == 2) 0.25 else 0,
                         end = 0.75, 
                         guide = ggplot2::guide_legend(override.aes = list(size = 4))
-                      )
+                      ),
+                      if (length(unique(pca_dfxy[[ivar]])) > 10) {
+                        ggplot2::theme(legend.position = "none")
+                      } else {
+                        NULL
+                      }
                     )
                   }
                 }
