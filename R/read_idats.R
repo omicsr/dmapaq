@@ -353,45 +353,28 @@ read_metharray <- function(files, n_cores) {
       i_files <- paste0(i_files, ".gz")
     }
     suppressWarnings({
-      i_idats <- parallel::mclapply(X = i_files, mc.preschedule = FALSE, mc.cores = n_cores, FUN = illuminaio::readIDAT)
+      i_idats <- parallel::mclapply(
+        X = i_files, mc.preschedule = FALSE, mc.cores = n_cores,
+        FUN = illuminaio::readIDAT
+      )
     })
-    assign(x = gsub("(^.).*", "\\1_idats", ichannel), value = i_idats)
+    assign(x = ichannel, value = i_idats)
   }
 
-  common_addresses <- as.character(Reduce("intersect", lapply(
-    X = get("G_idats"),
-    FUN = function(x) rownames(x$Quants)
-  )))
+  G_idats <- lapply(X = Grn, FUN = `[[`, "Quants")
+  R_idats <- lapply(X = Red, FUN = `[[`, "Quants")
+
+  common_rows <- as.character(Reduce("intersect", lapply(X = G_idats, FUN = rownames)))
 
   out <- minfi::RGChannelSetExtended(
-    Red = do.call("cbind", lapply(
-      X = get("R_idats"),
-      y = common_addresses,
-      FUN = function(x, y) x$Quants[y, "Mean"]
-    )),
-    Green = do.call("cbind", lapply(
-      X = get("G_idats"),
-      y = common_addresses,
-      FUN = function(x, y) x$Quants[y, "Mean"]
-    )),
-    RedSD = do.call("cbind", lapply(
-      X = get("R_idats"),
-      y = common_addresses,
-      FUN = function(x, y) x$Quants[common_addresses, "SD"]
-    )),
-    GreenSD = do.call("cbind", lapply(
-      X = get("G_idats"),
-      y = common_addresses,
-      FUN = function(x, y) x$Quants[common_addresses, "SD"]
-    )),
-    NBeads = do.call("cbind", lapply(
-      X = get("G_idats"),
-      y = common_addresses,
-      FUN = function(x, y) x$Quants[common_addresses, "NBeads"]
-    ))
+    Red = do.call("cbind", lapply(X = R_idats, y = common_rows, FUN = function(x, y) x[y, "Mean"])),
+    Green = do.call("cbind", lapply(X = G_idats, y = common_rows, FUN = function(x, y) x[y, "Mean"])),
+    RedSD = do.call("cbind", lapply(X = R_idats, y = common_rows, FUN = function(x, y) x[y, "SD"])),
+    GreenSD = do.call("cbind", lapply(X = G_idats, y = common_rows, FUN = function(x, y) x[y, "SD"])),
+    NBeads = do.call("cbind", lapply(X = G_idats, y = common_rows, FUN = function(x, y) x[y, "NBeads"]))
   )
 
-  rownames(out) <- common_addresses
+  rownames(out) <- common_rows
 
   out
 }
