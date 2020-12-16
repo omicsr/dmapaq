@@ -201,8 +201,20 @@ sample_sheet[,
   by = "Sample_Name"
 ]
 
+if (any(grepl("^[0-9]", sample_sheet[["Sample_ID"]]))) {
+  sample_sheet[
+    j = Sample_ID := paste0("ID_", Sample_ID)
+  ]
+}
+
+data.table::setcolorder(sample_sheet, neworder = "Sample_ID")
+
 if (do_check_sex) {
-  sample_sheet[, qc_observed_sex := c("1" = 1, "2" = 2, "M" = 1, "F" = 2, "0" = 2)[get(params[["sex_colname"]])]]
+  sample_sheet[
+    j = qc_observed_sex := c(
+      "1" = 1, "2" = 2, "M" = 1, "F" = 2, "0" = 2
+    )[as.character(get(params[["sex_colname"]]))]
+  ]
   pca_vars <- intersect(colnames(sample_sheet), unique(c(params[["pca_vars"]], "qc_observed_sex")))
 } else {
   pca_vars <- intersect(colnames(sample_sheet), params[["pca_vars"]])
