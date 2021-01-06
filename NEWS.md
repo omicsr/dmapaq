@@ -1,9 +1,12 @@
 # dmapaq (development version)
 
+* In `DESCRIPTION`,
+    + Remove `doParallel`.
 * In [rmarkdown templates](inst/rmarkdown/templates),
     + Make sure `Sample_ID` is a unique string and in the first column of the sample sheet.
+    + Remove `doParallel`.
 * In `read_idats.R`,
-    + Rewrite the build process of the `RGChannelSetExtended` object. 
+    + Rewrite the build process of the `RGChannelSetExtended` object.
 
 # dmapaq 0.3.4
 

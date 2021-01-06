@@ -66,7 +66,6 @@ suppressPackageStartupMessages({
   library("utils")
   library("data.table")
   library("dmapaq")
-  library("doParallel")
   library("ENmix")
   library("flashpcaR")
   library("FlowSorted.Blood.EPIC")
@@ -448,12 +447,11 @@ cell_comp <- switch(
   },
   {
     estimate_k_cluster <- function(Rmat, max_k = 25, n_cores = 1) {
-      cluster <- parallel::makeCluster(n_cores)
-      doParallel::registerDoParallel(cluster)
-
       svdRmat <- RefFreeEWAS::svdSafe(Rmat)
-      tmp <- do.call("rbind", lapply(
+      tmp <- do.call("rbind", mclapply(
         X = 0:max_k,
+        mc.cores = n_cores,
+        mc.preschedule = FALSE,
         mc_Rmat = Rmat,
         mc_svdRmat = svdRmat,
         FUN = function(Ktest, mc_Rmat, mc_svdRmat) {
@@ -477,8 +475,6 @@ cell_comp <- switch(
               N2 * sum(log(tmpSigSq))
           )
       }))
-
-      parallel::stopCluster(cluster)
 
       list(
         icTable = tmp,

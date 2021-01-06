@@ -36,7 +36,6 @@ Imports:
 Suggests: 
     stats,
     bookdown (>= 0.20),
-    doParallel (>= 1.0.15),
     flashpcaR (>= 2.1),
     FlowSorted.Blood.EPIC (>= 1.6.1),
     FlowSorted.CordBloodCombined.450k (>= 1.4.1),
