@@ -942,11 +942,22 @@ for (ibeta in seq_along(list_beta)) {
       },
       by = "pc"
     ]
-
+    
     p_association <- ggplot2::ggplot(data = asso_dt) +
       ggplot2::aes(
-        x = factor(.data[["pc"]]),
-        y = factor(.data[["term"]], levels = sort(unique(.data[["term"]]), decreasing = TRUE)),
+        x = factor(.data[["pc"]]), 
+        y = factor(
+          x = .data[["term"]], 
+          levels = setorderv(
+            x = data.table::dcast(
+              data = asso_dt[j = list(pc, term, `Pr(>F)` = data.table::fifelse(`Pr(>F)` <= 0.1, `Pr(>F)`, NA_real_))], 
+              formula = term ~ pc, 
+              value.var = "Pr(>F)"
+            ), 
+            cols = levels(asso_dt[["pc"]])[1:n_comp], 
+            order = -1
+          )[["term"]]
+        ),
         fill = .data[["Pr(>F)"]]
       ) +
       ggplot2::geom_tile(colour = "white", na.rm = TRUE) +
