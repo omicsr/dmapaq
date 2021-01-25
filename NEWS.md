@@ -5,6 +5,7 @@
 * In [rmarkdown templates](inst/rmarkdown/templates),
     + Make sure `Sample_ID` is a unique string and in the first column of the sample sheet.
     + Remove `doParallel`.
+    + Order PCA association tile plot according to p-values.
 * In `read_idats.R`,
     + Rewrite the build process of the `RGChannelSetExtended` object.
 
