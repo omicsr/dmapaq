@@ -64,6 +64,7 @@ jobs:
       - name: Install dependencies
         run: |
           pak::local_install_dev_deps(upgrade = TRUE)
+          pak::pkg_install("gabraham/flashpca/flashpcaR")
           pak::pkg_install("rcmdcheck")
         shell: Rscript {0}
 
