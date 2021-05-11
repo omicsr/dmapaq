@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# DNA Methylation Arrays Processing And Quality-Control <!--<img src="man/figures/dmapaq.png" align="right" width="120" />-->
+# DNA Methylation Arrays Processing And Quality-Control
 
 <!-- badges: start -->
 
@@ -26,23 +26,24 @@ remotes::install_github("umr1283/dmapaq")
 
 ## Overview
 
-  - `read_idats()` allows to efficiently import idats files mostly using
+-   `read_idats()` allows to efficiently import idats files mostly using
     [minfi](https://bioconductor.org/packages/minfi/) functions.
-  - `qc_idats()` allows to compute quality-control of methylation array
+-   `qc_idats()` allows to compute quality-control of methylation array
     from Illumina using a [rmarkdown
     template](inst/rmarkdown/templates/qc_idats/skeleton/skeleton.Rmd).
-  - `ggheatmap()` allows to compute heatmap with dendrogram on x-axis
-    and y-axis using [ggplot2](https://ggplot2.tidyverse.org/).
+
+------------------------------------------------------------------------
 
 ## Getting help
 
 If you encounter a clear bug, please file a minimal reproducible example
-on [github](https://github.com/omicsr/dmapaq/issues).  
+on [github](https://github.com/umr1283/dgapaq/issues).  
 For questions and other discussion, please contact the package
 maintainer.
 
------
+## Code of Conduct
 
-Please note that this project is released with a [Contributor Code of
-Conduct](.github/CODE_OF_CONDUCT.md).  
-By participating in this project you agree to abide by its terms.
+Please note that the `dgapaq` project is released with a [Contributor
+Code of
+Conduct](https://contributor-covenant.org/version/2/0/CODE_OF_CONDUCT.html).
+By contributing to this project, you agree to abide by its terms.
