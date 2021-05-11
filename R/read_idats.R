@@ -17,6 +17,7 @@
 #' @inheritParams qc_idats
 #'
 #' @import data.table
+#' @import ChAMPdata
 #'
 #' @return A `list`.
 #' @export
@@ -337,6 +338,7 @@ read_sample_sheet <- function(
 #'
 #' @keywords internal
 read_metharray <- function(files, n_cores) {
+  Grn <- Red <- NULL # to avoid note from global variable check
   basenames <- unique(sub("_Grn\\.idat.*|_Red\\.idat.*", "", files))
   for (ichannel in c("Grn", "Red")) {
     i_files <- paste0(basenames, "_", ichannel, ".idat")

@@ -31,6 +31,7 @@ qc_idats(
   cell_tissue = NULL,
   pca = TRUE,
   pca_vars = c("Sample_Plate", "Sentrix_ID"),
+  pca_threshold = 2,
   max_labels = 15,
   title = paste(array, "Array Quality-Control"),
   author_name = "Unknown",
@@ -119,6 +120,9 @@ Default is \code{TRUE}.}
 
 \item{pca_vars}{A \code{vector(character)}. Variables to be used with factorial planes.
 Default is \code{c("Sample_Plate", "Sentrix_ID")}.}
+
+\item{pca_threshold}{A \code{numeric}. The number of times the interquartile range from the upper
+and lower quartile at which sa sample is defined as an outlier. Default is \code{2}.}
 
 \item{max_labels}{A \code{numeric}. The maximum number of labels to show on plots. Default is \code{15}}
 

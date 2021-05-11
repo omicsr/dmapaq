@@ -2,4 +2,5 @@
 
 export(qc_idats)
 export(read_idats)
+import(ChAMPdata)
 import(data.table)
