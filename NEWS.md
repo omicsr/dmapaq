@@ -1,4 +1,4 @@
-# dmapaq (development version)
+# dmapaq 0.3.5
 
 * In `DESCRIPTION`,
     + Remove `doParallel`.
