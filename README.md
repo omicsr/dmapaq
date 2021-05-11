@@ -8,7 +8,7 @@
 [![Lifecycle:
 experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://www.tidyverse.org/lifecycle/#experimental)
 [![GitHub
-tag](https://img.shields.io/github/tag/mcanouil/dmapaq.svg?label=latest%20tag&include_prereleases)](https://github.com/mcanouil/dmapaq)
+tag](https://img.shields.io/github/tag/umr1283/dmapaq.svg?label=latest%20tag&include_prereleases)](https://github.com/umr1283/dmapaq)
 [![R build
 status](https://github.com/umr1283/dmapaq/workflows/R-CMD-check/badge.svg)](https://github.com/umr1283/dmapaq/actions)
 <!-- badges: end -->
@@ -21,7 +21,7 @@ install.packages("dmapaq")
 
 # Or the the development version from GitHub:
 # install.packages("remotes")
-remotes::install_github("mcanouil/dmapaq")
+remotes::install_github("umr1283/dmapaq")
 ```
 
 ## Overview
