@@ -42,8 +42,9 @@ jobs:
       - name: Install pak and query dependencies
         run: |
           install.packages("pak", repos = "https://r-lib.github.io/p/pak/dev/")
+          pak::pkg_install("remotes")
+          remotes::install_github("gabraham/flashpca/flashpcaR")
           saveRDS(pak::pkg_deps("local::.", dependencies = TRUE), ".github/r-depends.rds")
-          pak::pkg_install("gabraham/flashpca/flashpcaR")
         shell: Rscript {0}
 
       - name: Restore R package cache
