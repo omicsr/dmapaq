@@ -51,7 +51,7 @@ read_idats <- function(
     .libPaths()[1],
     unlist(strsplit(Sys.getenv("R_LIBS"), .Platform$path.sep))
   ))
-  Sys.setenv(R_LIBS = paste(r_libs, sep = .Platform$path.sep))
+  Sys.setenv(R_LIBS = paste(r_libs, collapse = .Platform$path.sep))
   on.exit(Sys.setenv(R_LIBS = old_r_libs))
 
   if (echo) {
