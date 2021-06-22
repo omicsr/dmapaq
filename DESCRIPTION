@@ -59,8 +59,8 @@ Suggests:
     sessioninfo (>= 1.1.1),
     sva (>= 3.36.0)
 Remotes: 
-    github::gabraham/flashpca/flashpcaR
-    github::achilleasNP/IlluminaHumanMethylationEPICmanifest
+    github::gabraham/flashpca/flashpcaR,
+    github::achilleasNP/IlluminaHumanMethylationEPICmanifest,
     github::achilleasNP/IlluminaHumanMethylationEPICanno.ilm10b5.hg38
 Encoding: UTF-8
 LazyData: true
