@@ -1,5 +1,13 @@
 # dmapaq (development version)
 
+* In `DESCRIPTION`,
+    + Add Illumina annotation in GRCh38.
+* In [rmarkdown templates](inst/rmarkdown/templates),
+    + Tweak code syntax.
+    + Add Illumina annotation in GRCh38.
+* In `read_idats.R`,
+    + Fix `.doSnowGlobals` errors within `targets`.
+
 # dmapaq 0.3.5
 
 * In `DESCRIPTION`,
