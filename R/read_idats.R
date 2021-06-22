@@ -46,6 +46,14 @@ read_idats <- function(
   echo = FALSE
 ) {
 
+  old_r_libs <- Sys.getenv("R_LIBS")
+  r_libs <- unique(c(
+    .libPaths()[1],
+    unlist(strsplit(Sys.getenv("R_LIBS"), .Platform$path.sep))
+  ))
+  Sys.setenv(R_LIBS = paste(r_libs, sep = .Platform$path.sep))
+  on.exit(Sys.setenv(R_LIBS = old_r_libs))
+
   if (echo) {
     message(
       "===============================\n",
