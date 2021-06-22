@@ -70,6 +70,7 @@ suppressPackageStartupMessages({
   library("flashpcaR")
   library("FlowSorted.Blood.EPIC")
   library("FlowSorted.CordBloodCombined.450k")
+  # library("IlluminaHumanMethylationEPICmanifest")
   library("ggdendro")
   library("ggplot2")
   library("ggrepel")
@@ -98,13 +99,14 @@ knitr::opts_chunk$set(
   tidy = FALSE,
   crop = TRUE,
   autodep = TRUE,
-  fig.align = "center"
+  fig.align = "center",
+  dev = "ragg_png"
 )
 
 
 ### Define theme ===================================================================================
 ggplot2::theme_set(
-  ggplot2::theme_light(base_size = 11) +
+  ggplot2::theme_minimal(base_size = 11) +
     ggplot2::theme(
       plot.title = ggtext::element_markdown(),
       plot.title.position = "plot",
@@ -192,8 +194,8 @@ Annotation package from bioconductor: `r params[["annotation"]]`
 
 ```{r sample-sheet}
 sample_sheet <- data.table::fread(params[["csv_file"]], skip = "Sample_Name")
-sample_sheet[, 
-  Sample_ID := {
+sample_sheet[ 
+  j = Sample_ID := {
     x <- as.character(1:.N)
     data.table::fifelse(x == "1", as.character(Sample_Name), paste(Sample_Name, x, sep = "_"))
   }, 
@@ -246,8 +248,8 @@ data_idats <- read_idats(
   n_cores = min(c(nrow(sample_sheet), 25, parallel::detectCores()))
 )
 data_mset <- data_idats[["mset"]]
-phenotypes <- as.data.table(data_mset@metadata[["phenotypes"]])[, 
-  (c("Sample_ID", "Sample_Plate", "Sentrix_ID")) := lapply(.SD, as.character),
+phenotypes <- as.data.table(data_mset@metadata[["phenotypes"]])[
+  j = c("Sample_ID", "Sample_Plate", "Sentrix_ID") := lapply(.SD, as.character),
   .SDcols = c("Sample_ID", "Sample_Plate", "Sentrix_ID")
 ]
 data_rgset <- data_idats[["rgset"]]
@@ -259,19 +261,19 @@ cat(paste("+", data_idats[["log"]]), sep = "\n")
 ```
 
 ```{r cohort-overview-table, eval = "qc_observed_sex" %in% names(phenotypes)}
-phenotypes[, 
-  sex_fct := factor(qc_observed_sex, levels = c(1, 2, 0), labels = c("Male", "Female", "Unspecified"))
+phenotypes[
+  j = sex_fct := factor(qc_observed_sex, levels = c(1, 2, 0), labels = c("Male", "Female", "Unspecified"))
 ]
 
-phenotypes[, .N, by = sex_fct][, .(sex_fct, N)] %>% 
-  gt::gt(auto_align = "center") %>%
+phenotypes[j = .N, by = sex_fct][j = list(sex_fct, N)] %>% 
+  gt::gt(auto_align = TRUE) %>%
   gt::tab_header(
     title = "Samples Available", 
     subtitle = gt::md("*EPIC Array*")
   ) %>%
   gt::fmt_number(columns = "N", decimals = 0) %>% 
   gt::grand_summary_rows(
-    columns = gt::vars(N),
+    columns = "N",
     fns = list(Total = ~ sum(.)),
     formatter = gt::fmt_number,
     decimals = 0
@@ -289,7 +291,7 @@ data.frame(
   X2 = rowSums(sapply(phenotypes[["call_rate"]], "<", callrate_thresholds)),
   X3 = percent2(rowSums(sapply(phenotypes[["call_rate"]], "<", callrate_thresholds)) / nrow(phenotypes))
 ) %>% 
-  gt::gt(auto_align = "center") %>% 
+  gt::gt(auto_align = TRUE) %>% 
   gt::tab_header("Number Of Samples To Exclude Based On Call Rate Thresholds") %>% 
   gt::tab_style(
     style = gt::cell_fill(color = "dodgerblue", alpha = 0.5), 
@@ -310,8 +312,8 @@ data.frame(
 
 ```{r call-rate-samples-fig}
 ggplot2::ggplot(
-  data = phenotypes[order(call_rate), .(Sample_ID, call_rate)][, 
-    c("x", "labs") := list(1:.N, ifelse(call_rate < params[["callrate_samples"]], Sample_ID, NA))
+  data = phenotypes[order(call_rate), list(Sample_ID, call_rate)][
+    j = c("x", "labs") := list(1:.N, ifelse(call_rate < params[["callrate_samples"]], Sample_ID, NA))
   ]
 ) +
   ggplot2::aes(x = seq_along(call_rate), y = call_rate) +
@@ -321,7 +323,7 @@ ggplot2::ggplot(
     na.rm = TRUE
   ) +
   ggrepel::geom_label_repel(
-    data = ~ .x[, labs := if (sum(!is.na(labs)) > params[["max_labels"]]) NA else labs],
+    data = ~ .x[j = labs := if (sum(!is.na(labs)) > params[["max_labels"]]) NA else labs],
     mapping = ggplot2::aes(label = labs),
     min.segment.length = ggplot2::unit(0, "lines"),
     force = 10, 
@@ -423,7 +425,7 @@ cell_comp <- switch(
     out
   },
   "cordblood" = {
-    if (nchar(system.file(package = "FlowSorted.CordBloodCombined.450k")) == 0) {
+    if (nchar(system.file(package = "FlowSorted.CordBloodCombined.450k")) > 0) {
       idol_cpgs <- get(utils::data("IDOLOptimizedCpGsCordBlood", package = "FlowSorted.CordBloodCombined.450k"))
     } else {
       idol_cpgs <- NULL
@@ -433,7 +435,7 @@ cell_comp <- switch(
       rgSet = data_rgset,
       compositeCellType = "cordbloodCombined",
       processMethod = "preprocessNoob",
-      probeSelect = if (!is.null(idol_cpgs)) "IDOL" else "auto",
+      probeSelect = if (is.null(idol_cpgs)) "auto" else "IDOL",
       cellTypes = c("Bcell", "CD4T", "CD8T", "Gran", "Mono", "NK", "nRBC"),
       referencePlatform = paste0("IlluminaHumanMethylation", params[["array"]]),
       referenceset = "FlowSorted.CordBloodCombined.450k",
@@ -519,7 +521,7 @@ cell_comp <- switch(
 
 phenotypes <- merge(
   x = phenotypes,
-  y = data.table::as.data.table(cell_comp)[, Sample_ID := rownames(cell_comp)],
+  y = data.table::as.data.table(cell_comp, keep.rownames = "Sample_ID"),
   by = "Sample_ID"
 )
 ```
@@ -528,23 +530,23 @@ phenotypes <- merge(
 cell_cols <- grep("^CellT_", names(phenotypes), value = TRUE)
 dd_row <- stats::as.dendrogram(
   stats::hclust(
-    d = stats::dist(phenotypes[, ..cell_cols], method = "euclidean"), 
+    d = stats::dist(phenotypes[j = ..cell_cols], method = "euclidean"), 
     method = "ward.D2"
   )
 )
 dd_col <- stats::as.dendrogram(
   stats::hclust(
-    d = stats::dist(data.table::transpose(phenotypes[, ..cell_cols]), method = "euclidean"), 
+    d = stats::dist(data.table::transpose(phenotypes[j = ..cell_cols]), method = "euclidean"), 
     method = "ward.D2"
   )
 )
 p_heatmap <- list(
   ggplot2::ggplot(
     data = data.table::melt(
-      phenotypes[, .SD, .SDcols = c("Sample_ID", cell_cols)], 
+      phenotypes[j = .SD, .SDcols = c("Sample_ID", cell_cols)], 
       measure.vars = grep("^CellT_", names(phenotypes), value = TRUE)
-    )[, 
-      (c("Sample_ID", "variable")) := 
+    )[ 
+      j = c("Sample_ID", "variable") := 
         list(
           factor(Sample_ID, levels = phenotypes[stats::order.dendrogram(dd_row), Sample_ID]),
           factor(variable, levels = cell_cols[stats::order.dendrogram(dd_col)])
@@ -630,7 +632,7 @@ if (is.null(params[["sex_threshold"]])) {
 }
 sex_predicted <- data.table::as.data.table(
   minfi::getSex(minfi::mapToGenome(data_rgset), cutoff = sex_threshold)
-)[, Sample_ID := minfi::sampleNames(data_rgset)]
+)[j = Sample_ID := minfi::sampleNames(data_rgset)]
 data.table::setnames(
   x = sex_predicted,
   old = c("xMed", "yMed", "predictedSex"), 
@@ -639,17 +641,17 @@ data.table::setnames(
 
 phenotypes <- merge(
   x = phenotypes,
-  y = sex_predicted[, 
-    (c("Sample_ID", "qc_predicted_sex")) := list(
+  y = sex_predicted[
+    j = c("Sample_ID", "qc_predicted_sex") := list(
       as.character(Sample_ID),
       c("1" = 1, "2" = 2, "M" = 1, "F" = 2, "0" = 2)[qc_predicted_sex]
     )
   ], 
   by = "Sample_ID"
-)[, qc_sex_discrepancy := is.na(qc_observed_sex) | qc_observed_sex != qc_predicted_sex]
+)[j = qc_sex_discrepancy := is.na(qc_observed_sex) | qc_observed_sex != qc_predicted_sex]
 
-phenotypes[,
-  (c("qc_predicted_sex", "qc_observed_sex")) := 
+phenotypes[
+  j = c("qc_predicted_sex", "qc_observed_sex") := 
     lapply(.SD, factor, levels = c(1, 2, 0), labels = c("Male", "Female", "Unspecified")), 
   .SDcols = c("qc_predicted_sex", "qc_observed_sex")
 ]
@@ -680,7 +682,7 @@ ggplot2::ggplot(data = phenotypes) +
 ```
 
 ```{r sex-check-fig, eval = do_check_sex}
-axis_limits <- range(phenotypes[, c("qc_xmedian", "qc_ymedian")], na.rm = TRUE)
+axis_limits <- range(phenotypes[j = c("qc_xmedian", "qc_ymedian")], na.rm = TRUE)
 
 ggplot2::ggplot(data = phenotypes) +
   ggplot2::aes(
@@ -757,8 +759,8 @@ ggplot2::ggplot(data = phenotypes) +
 
 ```{r discrepancy-table, eval = do_check_sex}
 data.table::dcast(
-  data = phenotypes[, .N, by = c("qc_predicted_sex", "qc_observed_sex")][,
-    (c("qc_predicted_sex", "qc_observed_sex")) := list(
+  data = phenotypes[j = .N, by = c("qc_predicted_sex", "qc_observed_sex")][
+    j = c("qc_predicted_sex", "qc_observed_sex") := list(
       paste("Predicted:", qc_predicted_sex),
       paste("Observed:", qc_observed_sex)
     )
@@ -767,7 +769,7 @@ data.table::dcast(
   value.var = "N", 
   fill = 0
 ) %>%
-  gt::gt(rowname_col = "qc_predicted_sex", auto_align = "center") %>%
+  gt::gt(rowname_col = "qc_predicted_sex", auto_align = TRUE) %>%
   gt::opt_row_striping() %>% 
   gt::opt_all_caps() %>% 
   print()
@@ -775,8 +777,8 @@ data.table::dcast(
 
 ```{r discrepancy-samples-table, eval = do_check_sex}
 if (any(phenotypes[["qc_sex_discrepancy"]])) {
-  phenotypes[(qc_sex_discrepancy), .(Sample_Name, Sample_ID, qc_observed_sex, qc_predicted_sex)] %>% 
-    gt::gt(auto_align = "center") %>%
+  phenotypes[(qc_sex_discrepancy), list(Sample_Name, Sample_ID, qc_observed_sex, qc_predicted_sex)] %>% 
+    gt::gt(auto_align = TRUE) %>%
     gt::cols_label(
       Sample_Name = "Name",
       Sample_ID = "ID", 
@@ -843,8 +845,8 @@ for (ibeta in seq_along(list_beta)) {
   n_comp <- min(10, ncol(pca_methylation))
   fig_n_comp <- min(3, ncol(pca_methylation))
   
-  keep_technical <- names(which(sapply(pca_phenotypes[, 
-    lapply(.SD, function(x) {
+  keep_technical <- names(which(sapply(pca_phenotypes[ 
+    j = lapply(.SD, function(x) {
       (data.table::uniqueN(x) > 1 & data.table::uniqueN(x) < length(x)) | is.numeric(x)
     }), 
     .SDcols = pca_vars
@@ -902,8 +904,8 @@ for (ibeta in seq_along(list_beta)) {
       measure.vars = grep("^PC[0-9]+$", names(pca_dfxy), value = TRUE),
       variable.name = "pc",
       value.name = "values"
-    )[pc %in% sprintf("PC%02d", 1:n_comp)][,
-      {
+    )[pc %in% sprintf("PC%02d", 1:n_comp)][
+      j = {
         m <- stats::model.matrix(
           object = stats::as.formula(
             object = paste0("values ~ ", paste(keep_technical, collapse = " + "))
@@ -938,7 +940,7 @@ for (ibeta in seq_along(list_beta)) {
             })
           )
         }
-        out[, full_rank := qr(m)$rank == ncol(m)]
+        out[j = full_rank := qr(m)$rank == ncol(m)]
       },
       by = "pc"
     ]
@@ -1019,7 +1021,7 @@ for (ibeta in seq_along(list_beta)) {
             X = utils::combn(sprintf("PC%02d", 1:fig_n_comp), 2),
             MARGIN = 2,
             FUN = function(x) {
-              ggplot2::ggplot(data = pca_dfxy[, .SD, .SDcols = c(ivar, x)]) +
+              ggplot2::ggplot(data = pca_dfxy[j = .SD, .SDcols = c(ivar, x)]) +
                 ggplot2::aes(x = .data[[x[1]]], y = .data[[x[2]]], colour = .data[[ivar]]) +
                 ggplot2::geom_hline(yintercept = 0, linetype = 2, na.rm = TRUE) +
                 ggplot2::geom_vline(xintercept = 0, linetype = 2, na.rm = TRUE) +
@@ -1036,7 +1038,7 @@ for (ibeta in seq_along(list_beta)) {
                       ggplot2::stat_ellipse(type = "norm", na.rm = TRUE, show.legend = FALSE),
                       ggplot2::scale_colour_viridis_d(
                         name = NULL,
-                        begin = if (pca_dfxy[, data.table::uniqueN(.SD), .SDcols = ivar] == 2) 0.25 else 0,
+                        begin = if (pca_dfxy[j = data.table::uniqueN(.SD), .SDcols = ivar] == 2) 0.25 else 0,
                         end = 0.75, 
                         guide = ggplot2::guide_legend(override.aes = list(size = 4))
                       ),
@@ -1065,11 +1067,11 @@ for (ibeta in seq_along(list_beta)) {
   }
 
   cat("\n#### Outliers Detection\n\n")
-  pca_dfxy[, 
-    dist_centre := rowSums(sapply(.SD, function(x) as.vector(scale(x))^2)), 
+  pca_dfxy[
+    j = dist_centre := rowSums(sapply(.SD, function(x) as.vector(scale(x))^2)), 
     .SDcols = sprintf("PC%02d", 1:fig_n_comp)
-  ][,
-    is_outlier := factor(
+  ][
+    j = is_outlier := factor(
       x = dist_centre > (
         stats::quantile(dist_centre, 0.75, na.rm = TRUE) + 
           params[["pca_threshold"]] * stats::IQR(dist_centre, na.rm = TRUE)
@@ -1084,7 +1086,7 @@ for (ibeta in seq_along(list_beta)) {
         X = utils::combn(sprintf("PC%02d", 1:fig_n_comp), 2),
         MARGIN = 2,
         FUN = function(x) {
-          ggplot2::ggplot(data = pca_dfxy[, .SD, .SDcols = c("is_outlier", x)]) +
+          ggplot2::ggplot(data = pca_dfxy[j = .SD, .SDcols = c("is_outlier", x)]) +
             ggplot2::aes(
               x = .data[[x[1]]], 
               y = .data[[x[2]]], 
@@ -1130,7 +1132,7 @@ for (ibeta in seq_along(list_beta)) {
       .SD, 
       .SDcols = c("Sample_ID", pca_vars, sprintf("PC%02d", 1:fig_n_comp))
     ], 
-    auto_align = "center"
+    auto_align = TRUE
   ) %>%
     gt::tab_header(title = "Samples Identified As Possible Outliers") %>%
     gt::fmt_number(columns = sprintf("PC%02d", 1:fig_n_comp), decimals = 2) %>%
