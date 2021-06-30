@@ -62,15 +62,13 @@ dir.create(output_directory, showWarnings = FALSE, recursive = TRUE, mode = "077
 
 ### Load packages ==================================================================================
 suppressPackageStartupMessages({
+  library("ragg")
   library("stats")
   library("utils")
   library("data.table")
   library("dmapaq")
   library("ENmix")
   library("flashpcaR")
-  library("FlowSorted.Blood.EPIC")
-  library("FlowSorted.CordBloodCombined.450k")
-  # library("IlluminaHumanMethylationEPICmanifest")
   library("ggdendro")
   library("ggplot2")
   library("ggrepel")
@@ -85,6 +83,14 @@ suppressPackageStartupMessages({
   library("scales")
   library("sessioninfo")
   library("sva")
+  # library("rmarkdown")
+  # library("bookdown")
+  # library("IlluminaHumanMethylation450kmanifest")
+  # library("IlluminaHumanMethylationEPICmanifest") # renv::install("achilleasNP/IlluminaHumanMethylationEPICmanifest")
+  # library("IlluminaHumanMethylationEPICanno.ilm10b5.hg38") # renv::install("achilleasNP/IlluminaHumanMethylationEPICanno.ilm10b5.hg38")
+  # library("preprocessCore") # options(configure.args = "--disable-threading"); renv::install("bmbolstad/preprocessCore")
+  library("FlowSorted.CordBloodCombined.450k")
+  library("FlowSorted.Blood.EPIC")
 })
 
 
@@ -430,15 +436,15 @@ cell_comp <- switch(
     } else {
       idol_cpgs <- NULL
     }
-    FlowSorted.CordBloodCombined.450k <- FlowSorted.CordBloodCombined.450k::FlowSorted.CordBloodCombined.450k()
+    # FlowSorted.CordBloodCombined.450k <- FlowSorted.CordBloodCombined.450k::FlowSorted.CordBloodCombined.450k()
     out <- FlowSorted.Blood.EPIC::estimateCellCounts2(
       rgSet = data_rgset,
-      compositeCellType = "cordbloodCombined",
+      compositeCellType = "CordBloodCombined",
       processMethod = "preprocessNoob",
       probeSelect = if (is.null(idol_cpgs)) "auto" else "IDOL",
       cellTypes = c("Bcell", "CD4T", "CD8T", "Gran", "Mono", "NK", "nRBC"),
       referencePlatform = paste0("IlluminaHumanMethylation", params[["array"]]),
-      referenceset = "FlowSorted.CordBloodCombined.450k",
+      # referenceset = "FlowSorted.CordBloodCombined.450k",
       IDOLOptimizedCpGs = idol_cpgs,
       returnAll = FALSE,
       meanPlot = FALSE,
