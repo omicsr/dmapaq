@@ -5,6 +5,7 @@
 * In [rmarkdown templates](inst/rmarkdown/templates),
     + Tweak code syntax.
     + Add Illumina annotation in GRCh38.
+    + Fix cell composition estimate for CordBloodCombined.
 * In `read_idats.R`,
     + Fix `.doSnowGlobals` errors within `targets`.
 
