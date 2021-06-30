@@ -61,7 +61,7 @@ Suggests:
 Remotes: 
     github::gabraham/flashpca/flashpcaR,
     github::achilleasNP/IlluminaHumanMethylationEPICmanifest,
-    github::achilleasNP/IlluminaHumanMethylationEPICanno.ilm10b5.hg38
+    github::achilleasNP/IlluminaHumanMethylationEPICanno.ilm10b5.hg38,
     github::mcanouil/FlowSorted.Blood.EPIC@fix-cordBloodCombined
 Encoding: UTF-8
 LazyData: true
