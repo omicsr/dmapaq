@@ -40,7 +40,7 @@ read_idats <- function(
   norm_dye = "RELIC",
   norm_quantile = "quantile1",
   array_name = c("EPIC", "450k"),
-  annotation_version = c("ilm10b4.hg19", "ilmn12.hg19"),
+  annotation_version = c("ilm10b5.hg38", "ilm10b4.hg19", "ilmn12.hg19"),
   n_cores = 1,
   rgSet = NULL,
   echo = FALSE

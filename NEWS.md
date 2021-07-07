@@ -8,6 +8,7 @@
     + Fix cell composition estimate for CordBloodCombined.
 * In `read_idats.R`,
     + Fix `.doSnowGlobals` errors within `targets`.
+    + Add Illumina annotation in GRCh38 as default.
 
 # dmapaq 0.3.5
 
